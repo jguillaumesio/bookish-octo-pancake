@@ -1,19 +1,22 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
-export const context = React.createContext({setRef:null});
+export const context = React.createContext({setRef: null});
 
-export const HotKeyProvider = ({children, onKeyPress}) =>{
+export const HotKeyProvider = ({children, onKeyPress}) => {
 
     const ref = useRef();
 
-    const setKeyListener = () => {
-        ref.addEventListener('onKeyPress',(e) =>{
-            onKeyPress.find(key => key === e.code)?.callback();
-        })
+    const listener = (e) => {
+        onKeyPress.find(key => key.name === e.key)?.callback();
     }
 
-    return(
-        <div ref={ref}>
+    useEffect(() => {
+        ref.current.addEventListener('keydown', listener);
+        return () => ref.current.removeEventListener("keydown", listener);
+    }, [ref,onKeyPress]);
+
+    return (
+        <div ref={ref} tabIndex="0">
             {children}
         </div>
     )
