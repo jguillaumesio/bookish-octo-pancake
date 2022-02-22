@@ -1,28 +1,11 @@
 const HTMLParser = require('node-html-parser');
-const imageConversion = require("image-conversion");
-const ps = require("ps");
 const fs = require("fs");
 const axios = require("axios");
-const {By, until} = require("selenium-webdriver");
 const path = require('path');
-const puppeteer = require('puppeteer-extra');
-const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker');
-const request_client = require('request-promise-native');
-const JsFileDownloader = require('js-file-downloader');
-const https = require("https");
-const FormData = require('form-data');
-const request = require("request");
-const progress = require("progress");
 const Seven = require('node-7z');
 const sevenBin = require('7zip-bin');
 const pathTo7zip = sevenBin.path7za;
 const {replaceAll, addToJSONFile} = require('./../utils');
-
-let driver = null;
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 exports.findNewByEmulator = async (req, res) => {
     const root = "https://wowroms.com";

@@ -1,9 +1,11 @@
 import {useEffect, useState} from "react";
 import useWindowDimensions from "../hook/useWindowDimensions";
+import {useNavigate} from "react-router-dom";
+import {HotKeyProvider} from "../provider/HotKeyProvider";
 
 export const GameCaroussel = (props) => {
 
-    let {games} = props;
+    let {games, onEnter} = props;
     const [width, margin, transition] = [300, 20, 500];
     const windowDimensions = useWindowDimensions();
     const [selected, setSelected] = useState(null);
@@ -13,13 +15,29 @@ export const GameCaroussel = (props) => {
         setSelected(games[Math.floor(games.length / 2)]);
     }, [games]);
 
-    useEffect(() => {
-        setTimeout(()=>{
-            console.log("ok");
-        },1000)
-    },[selected])
+    const keyEvents = [
+        {
+            name: 'ArrowLeft',
+            callback: () => {
+                handleMoves(-1);
+            }
+        }, {
+            name: 'ArrowRight',
+            callback: () => {
+                handleMoves(+1);
+            }
+        },
+        {
+            name: 'Enter',
+            callback: () => {
+                if(onEnter){
+                    onEnter();
+                }
+            }
+        }
+    ]
 
-    const handleSelected = (increment) => {
+    const handleMoves = (increment) => {
         const modulo = (i, n) => {
             return ((i % n) + n) % n;
         };
@@ -42,7 +60,10 @@ export const GameCaroussel = (props) => {
     }
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%'}}>
+        <HotKeyProvider
+            style={{display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%'}}
+            onKeyPress={keyEvents}
+        >
             <div style={{
                 display: 'flex',
                 transition: `transform ${transition}ms ease-in-out`,
@@ -53,8 +74,6 @@ export const GameCaroussel = (props) => {
                          style={handleItemStyle(game)}/>
                 ))}
             </div>
-            <button onClick={() => handleSelected(+1)}>NEXT</button>
-            <button onClick={() => handleSelected(-1)}>PREVIOUS</button>
-        </div>
+        </HotKeyProvider>
     )
 }

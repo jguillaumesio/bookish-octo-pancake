@@ -38,12 +38,12 @@ bower_components
 build/Release
 
 # Dependency directories
-api/node_modules/
-api/public/
+server/node_modules/
+server/public/
 client/node_modules/
-api/.idea/
+server/.idea/
 client/.idea/
-api/package-lock.json
+server/package-lock.json
 client/package-lock.json
 jspm_packages/
 

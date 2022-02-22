@@ -1,22 +1,33 @@
 import React, {useEffect, useRef} from 'react';
+import { makeStyles} from "@mui/styles";
 
 export const context = React.createContext({setRef: null});
 
-export const HotKeyProvider = ({children, onKeyPress}) => {
+const useStyle = makeStyles({
+    root:{
+        "&:focus":{
+            outline:'0px solid transparent'
+        }
+    }
+});
 
-    const ref = useRef();
+export const HotKeyProvider = ({children, onKeyPress, ...props}) => {
+
+    const classes = useStyle();
 
     const listener = (e) => {
         onKeyPress.find(key => key.name === e.key)?.callback();
     }
 
     useEffect(() => {
-        ref.current.addEventListener('keydown', listener);
-        return () => ref.current.removeEventListener("keydown", listener);
-    }, [ref,onKeyPress]);
+        window.addEventListener('keydown', listener);
+        return () => {
+            window.removeEventListener('keydown',listener);
+        }
+    }, [onKeyPress]);
 
     return (
-        <div ref={ref} tabIndex="0">
+        <div tabIndex="0" className={classes.root} {...props}>
             {children}
         </div>
     )

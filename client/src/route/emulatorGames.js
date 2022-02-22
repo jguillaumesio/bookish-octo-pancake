@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import GameDataService from "../service/game.service";
 import {GameCaroussel} from "../component/GameCaroussel";
+import {ButtonBottomIndicator} from "../component/ButtonBottomIndicator";
 
 export const GameListIndex = () => {
 
@@ -25,7 +26,8 @@ export const GameListIndex = () => {
     return (
         <div className="container" >
             <div className="content" style={{ alignItems:'center'}}>
-                <GameCaroussel games={games}/>
+                <GameCaroussel onEnter={() => console.log('toLaunch')} games={games}/>
+                <ButtonBottomIndicator/>
             </div>
         </div>
     )
