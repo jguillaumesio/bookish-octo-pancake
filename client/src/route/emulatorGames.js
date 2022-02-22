@@ -26,7 +26,7 @@ export const GameListIndex = () => {
     return (
         <div className="container" >
             <div className="content" style={{ alignItems:'center'}}>
-                <GameCaroussel onEnter={() => console.log('toLaunch')} games={games}/>
+                <GameCaroussel onEnter={() => console.log('toLaunch')} onBackspace={()=> console.log('back')} games={games}/>
                 <ButtonBottomIndicator/>
             </div>
         </div>

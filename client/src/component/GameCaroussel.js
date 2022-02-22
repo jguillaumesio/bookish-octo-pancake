@@ -5,7 +5,7 @@ import {HotKeyProvider} from "../provider/HotKeyProvider";
 
 export const GameCaroussel = (props) => {
 
-    let {games, onEnter} = props;
+    let {games, onEnter, onBackspace} = props;
     const [width, margin, transition] = [300, 20, 500];
     const windowDimensions = useWindowDimensions();
     const [selected, setSelected] = useState(null);
@@ -30,8 +30,15 @@ export const GameCaroussel = (props) => {
         {
             name: 'Enter',
             callback: () => {
-                if(onEnter){
+                if (onEnter) {
                     onEnter();
+                }
+            }
+        }, {
+            name: 'Backspace',
+            callback: () => {
+                if (onBackspace) {
+                    onBackspace();
                 }
             }
         }

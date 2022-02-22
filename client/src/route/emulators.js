@@ -8,7 +8,7 @@ export const EmulatorListIndex = () => {
     return (
             <div className="container">
                 <div className="content">
-                    <Menu emulatorList={emulatorList}/>
+                    <Menu onBackspace={()=> console.log('back')} emulatorList={emulatorList} />
                     <ButtonBottomIndicator/>
                 </div>
             </div>
