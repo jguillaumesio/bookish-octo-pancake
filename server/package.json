@@ -12,6 +12,7 @@
     "progress": "^2.0.3",
     "progress-stream": "^2.0.0",
     "query-string": "^7.0.1",
+    "request": "^2.88.2",
     "socket.io": "^4.4.1"
   }
 }

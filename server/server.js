@@ -38,9 +38,7 @@ io.on("connection", (socket) => {
         console.info(`Socket ${socket.id} has disconnected.`);
     });
 
-    socket.on('downloadGame', ({url, emulator, data}) => {
-        gameController.downloadGame(url, emulator, data, socket);
-    });
+    require('./socket/events/game.event')(socket);
 });
 
 server.listen(8080, function() {
