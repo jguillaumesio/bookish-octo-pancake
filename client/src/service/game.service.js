@@ -8,6 +8,10 @@ class GameDataService {
         this.root = `http://127.0.0.1:8080/api/games`;
     }
 
+    getGameDetails(emulator, search){
+        return axios.get(`${this.root}/${emulator}/details/${search}`)
+    }
+
     getNewByEmulator(emulator){
         return axios.get(`${this.root}/${emulator}/new`);
     }

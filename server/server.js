@@ -16,6 +16,7 @@ const io = socketio(server, {
 });
 
 global.appRoot = __dirname;
+let token = null;
 
 app.use(cors({
     origin: process.env.CLIENT_URL
@@ -24,7 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-require("./api/routes")(app);
+require("./api/routes")(app, token);
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL);

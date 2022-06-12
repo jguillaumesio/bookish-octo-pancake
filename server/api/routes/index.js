@@ -1,8 +1,10 @@
-module.exports = app => {
-    const games = require("../controllers/game.controller.js");
+module.exports = (app,token) => {
+    const games = require("../controllers/game.controller.js")(token);
   
     const router = require("express").Router();
 
+
+    router.get("/:emulator/details/:search", games.searchGameDetails);
     //Find new games
     router.get("/:emulator/new", games.findNewByEmulator);
 
