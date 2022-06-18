@@ -2,118 +2,292 @@ const HTMLParser = require('node-html-parser');
 const fs = require("fs");
 const axios = require("axios");
 const path = require('path');
-const Seven = require('node-7z');
-const sevenBin = require('7zip-bin');
-const pathTo7zip = sevenBin.path7za;
-const {replaceAll, addToJSONFile} = require('./../../utils');
-const request = require('request');
+const yauzl = require("yauzl");
+const {PS2Repositories} = require("../../resources/games");
+const {mergeFiles} = require('split-file');
+const puppeteer = require('puppeteer');
+const qs = require("qs");
+const {exec} = require("child_process");
+const lepikEvents = require('lepikevents');
 
-const uncompress = (file) => {
-    let toRename = [];
-    const directory = path.dirname(file);
-    const myStream = Seven.extractFull(file, directory,{
-        $bin: pathTo7zip,
-        $progress: true
+const generateDownloadChunksHeaders = (total, cookie, directory) => {
+    const threads = [];
+    const bytesPartitionSize = (process.env.PARTITION_SIZE * 1024 * 1024);
+    const numberOfThreads = Math.ceil(total / bytesPartitionSize);//500 Mo per download
+    let start = 0;
+    for (let i = 0; i < numberOfThreads; i++) {
+        const end = (i === numberOfThreads - 1) ? total : start + bytesPartitionSize;
+        threads.push({
+            percentage: 0,
+            weight: end - start,
+            path: `${directory}/game${i + 1}.zip`,
+            index: i + 1,
+            headers: {
+                "cookie": cookie,
+                "Range": `bytes=${start}-${end}`
+            },
+            total: end - start
+        });
+        start = end + 1;
+    }
+    return threads;
+}
+
+const downloadChunk = async (url, thread) => {
+    let writer = fs.createWriteStream(thread.path);
+    let tracking;
+    const response = await axios({
+        method: 'get',
+        url: url,
+        responseType: 'stream',
+        headers: thread.headers
+    }).then(response => response);
+    return new Promise((resolve, reject) => {
+        tracking = setInterval(() => {
+            const newPercentage = parseInt(writer.bytesWritten / thread.total * 100).toFixed(0);
+            if (thread.percentage !== newPercentage) {
+                thread.percentage = newPercentage;
+                console.log(`${thread.path}: ${newPercentage}%`);
+            }
+        }, 1000);
+        response.data.pipe(writer);
+        let error = null;
+        writer.on('error', err => {
+            fs.rmSync(thread.path);
+            error = err;
+            writer.close();
+            reject(err);
+        });
+        writer.on('close', () => {
+            clearInterval(tracking);
+            if (!error) {
+                resolve(true);
+            }
+        });
     });
-    myStream.on('data', function (data) {
-        if(data.status === 'extracted'){
-            const extension = path.parse(data.file).base.split('.').pop();
-            toRename.push({
-                oldFile: `${directory}/${data.file}`,
-                newFile: `${directory}/game.${extension}`
-            });
+}
+
+const parseDirectory = (name) => {
+    const regex = /(\(.*?\)|(.zip))/gm;
+    const regex1 = /[^a-zA-Z0-9 :]/g;
+    const regex2 = /(\s+)/gm;
+    name = name.replace(regex, "");
+    name = name.replace(regex1, "");
+    name = name.trim();
+    return name.replace(regex2, "-");
+}
+
+const parseName = (name) => {
+    const regex = /(\(.*?\)|(.zip))/gm;
+    name = name.replace(regex, "");
+    return name.trim();
+}
+
+const connectToRepository = async () => {
+    let cookies = await axios.get("https://archive.org/services/donations/banner.php").then(res => res.headers["set-cookie"]);
+    await axios.get("https://archive.org/account/login", {
+        headers: {
+            cookie: cookies
         }
-    })
-    myStream.on('progress', extracted => console.log(extracted));
-    myStream.on('end', () => {
-        fs.unlink(file, () => {console.log('deleted');});
-        toRename.forEach( file => {
-            fs.rename( file.oldFile, file.newFile, e => { console.log(e) });
-        });
-        addToJSONFile(`${directory}/${process.env.INFORMATIONS_FILENAME}`, {downloaded:true});
+    }).then(res => {
+        const newCookies = res.headers["set-cookie"];
+        cookies = [...cookies, newCookies[0], ...newCookies.slice(newCookies.length - 3, newCookies.length)];
     });
-    myStream.on('error', e => console.log(e))
-}
 
-const download = async (fileUrl, formData, data, emulator, socket) => {
-    const options = {
-        'method': 'POST',
-        'url': fileUrl,
-        'headers': {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-            'Accept-Encoding': ' gzip, deflate, br',
-            'Accept-Language': ' fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Cache-Control': ' max-age=0',
-            'Connection': ' keep-alive',
-            'Content-Type': ' application/x-www-form-urlencoded',
-            'Cookie': ' _ga=GA1.2.792577390.1644525674; _gid=GA1.2.766110.1644698277; _gat_gtag_UA_120661049_1=1',
-            'Host': new URL(fileUrl).host,
-            'Origin': ' https://wowroms.com/',
-            'Referer': ' https://wowroms.com/',
-            'sec-ch-ua': ' " Not A;Brand";v="99", "Chromium";v="98", "Google Chrome";v="98"',
-            'sec-ch-mobile': ' ?0',
-            'sec-ch-ua-platform': ' "Windows"',
-            'Sec-Fetch-Dest': ' document',
-            'Sec-Fetch-Mode': ' navigate',
-            'Sec-Fetch-Site': ' same-site',
-            'Upgrade-Insecure-Requests': ' 1',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36'
+    await axios.post('https://archive.org/account/login', {
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie': cookies.map(cookie => cookie.split("; ")[0]).join("; ")
         },
-        formData: formData
-    };
-
-    data.name = replaceAll(data.name, ['\n','\t',':',' '], ['','','-','-']);
-    const directory = `${appRoot}/public/games/${emulator}/${data.name}`;
-    if (!fs.existsSync(directory)){
-        fs.mkdirSync(directory, { recursive: true });
-        fs.writeFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, JSON.stringify(data));
-    }
-    let filePath;
-    await new Promise((resolve, reject) => {
-        let stream = request(options);
-        stream.on('response',res => {
-            const total = res.headers['content-length'];
-            const fileName = res.headers['content-disposition'].substring(
-                res.headers['content-disposition'].indexOf('"') + 1,
-                res.headers['content-disposition'].lastIndexOf('"')
-            );
-            filePath = `${directory}/${fileName}`;
-            const file = fs.createWriteStream(filePath);
-            let percentage = 0;
-            const tracking = setInterval(()=>{
-                const newPercentage = parseInt(fs.statSync(filePath).size/total * 100).toFixed(0);
-                if(percentage !== newPercentage){
-                    percentage = newPercentage;
-                    socket.emit("downloadTracking",{percentage: percentage});
-                }
-                if(percentage == 100){
-                    clearInterval(tracking);
-                    resolve();
-                }
-            },1000);
-            res.pipe(file);
+        data: qs.stringify({
+            'submit_by_js': 'false',
+            'username': process.env.ARCHIVE_ORG_USERNAME,
+            'password': process.env.ARCHIVE_ORG_PASSWORD,
+            'referer': 'https://archive.org/',
+            'remember': 'true',
+            'login': 'true'
+        })
+    })
+        .then(function (response) {
+            const newCookie = response.headers["set-cookie"];
+            cookies = [...cookies, ...newCookie];
         });
-    });
 
-    uncompress(filePath, emulator);
+    return cookies.map(cookie => cookie.split("; ")[0]).join("; ")
 }
 
-exports.downloadGame = async (url, emulator, data, socket) => {
-    const root = "https://wowroms.com";
-    let page = await axios.get(url).then(res => res.data);
-    page = HTMLParser.parse(page);
-    url = `${root}${page.querySelectorAll('.btnDwn')[0].getAttribute('href')}`;
+const unZip = async (file, output) => {
+    if (!fs.existsSync(output)) {
+        fs.mkdirSync(output, {recursive: true});
+    }
+    yauzl.open(file, {lazyEntries: true}, (err, zipfile) => {
+        if (err) throw err;
+        zipfile.readEntry();
+        zipfile.on("entry", (entry) => {
+            if (/\/$/.test(entry.fileName)) {
+                zipfile.readEntry();
+            } else {
+                zipfile.openReadStream(entry, (err, readStream) => {
+                    if (err) throw err;
+                    readStream.on("end", () => {
+                        zipfile.readEntry();
+                    });
+                    const writer = fs.createWriteStream(`${output}/${entry.fileName}`);
+                    readStream.pipe(writer);
+                });
+            }
+        });
+    });
+}
 
-    const [k,t] = ['1644786000232','a94d7ed8bf67960976f32817ca44795e'];
-    page = await axios.get(url).then(res => res.data);
-    url = page.toString().match(/(var ajaxLinkUrl)(.*?)"(.*?)(")/g)[0];
-    url = `${root}${url.substring(url.indexOf('"') + 1,url.lastIndexOf('"'))}?k=${k}&t=${t}`;
-    const formData = {};
-    for(let i of HTMLParser.parse(page).querySelectorAll('#submitForm')[0].querySelectorAll('input')){
-        formData[i.getAttribute('name')] = i.getAttribute('value');
+const filterGames = (games) => {
+    return games.reduce((list, game) => {
+        const index = list.findIndex(i => i.name === game.name);
+        (index === -1) ? list.push({name: game.name, games: [game]}) : list[index].games.push(game);
+        return list;
+    }, []);
+}
+
+module.exports = () => {
+    const module = {};
+
+    module.findNewByEmulator = async (socket) => {
+        for (let repository of PS2Repositories) { //change by emulator
+            const games = [];
+            const url = repository.link;
+            let page;
+            try {
+                page = await axios.get(url).then(response => response.data);
+            } catch (e) {
+                console.log(e);
+                continue;
+            }
+            page = HTMLParser.parse(page.toString(), {blockTextElements: {pre: true}})
+                .getElementsByTagName("html")[0]
+                .getElementsByTagName("body")[0]
+                .getElementById("wrap")
+                .getElementById("maincontent")
+                .querySelectorAll(".container")[0]
+                .querySelectorAll(".download-directory-listing")[0]
+                .querySelectorAll("pre")[0];
+            page = HTMLParser.parse(page.firstChild.rawText)
+                .querySelectorAll("table")[0]
+                .querySelectorAll("tr");
+            for (let i of page) {
+                let row = i.querySelectorAll("td");
+                for (let y of row) {
+                    const link = y.querySelectorAll("a")[0];
+                    if (link && link.getAttribute("href").includes(".zip")) {
+                        games.push({
+                            rawName: link.rawText,
+                            name: parseName(link.rawText),
+                            directory: parseDirectory(link.rawText),
+                            url: `${url}/${link.getAttribute("href")}`
+                        });
+                    }
+                }
+            }
+            socket.emit("getNewGames", JSON.stringify({"games": filterGames(games)}));
+        }
+        socket.emit("endGetNewGames");
+    }
+    module.download = async (url, emulator, directory, name, socket) => {
+        console.log(url);
+        console.log(emulator);
+        console.log(directory);
+        console.log(name);
+        const cookie = await connectToRepository();
+        directory = (`${appRoot}/public/games/${emulator}/${directory}`).replace(/\\/g, '/');
+        if (!fs.existsSync(directory)) {
+            fs.mkdirSync(directory, {recursive: true});
+        }
+        const controller = new AbortController();
+        let total;
+        await axios({method: 'get', url: url, responseType: "stream", signal: controller.signal}).then(response => {
+            total = response.headers['content-length'];
+        });
+        controller.abort();
+        const threads = generateDownloadChunksHeaders(total, cookie, directory);
+
+        //start download process
+        fs.writeFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, JSON.stringify({
+            "name": name,
+            "state": "downloading"
+        }));
+        //DOWNLOAD PARTITIONS
+        try {
+            let seconds = 0;
+            const timer = setInterval(() => {
+                seconds++;
+            }, 1000);
+
+            await Promise.all(threads.map(thread => downloadChunk(url, thread)));
+            clearInterval(timer);
+            console.log(`${total / (1024 * 1024) / seconds}Mo/s en moyenne`);
+        } catch (e) {
+            console.log(`Error while merging ${directory}/game.zip`);
+            console.log(e);
+        }
+        //MERGING
+        try {
+            await mergeFiles(threads.map(thread => thread.path), `${directory}/game.zip`);
+        } catch (e) {
+            console.log(`Error while merging ${directory}/game.zip`);
+            console.log(e);
+        }
+
+        //REMOVING SPLITTED ZIP
+        for (let splittedFilePath of threads.map(thread => thread.path)) {
+            try {
+                fs.unlinkSync(splittedFilePath);
+            } catch (e) {
+                console.log(`Error while unlinking ${splittedFilePath}`);
+                console.log(e);
+            }
+        }
+
+        try {
+            const filePath = `${directory}/game.zip`;
+            await unZip(filePath, directory);
+            if (fs.existsSync(filePath)) {
+                fs.rmSync(filePath);
+            }
+            const content = fs.readFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, 'utf8');
+            fs.writeFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, JSON.stringify({
+                ...JSON.parse(content),
+                "state": "downloaded"
+            }));
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    module.launchGame = async (gamePath, socket) => {
+        const emulatorPath = path.join(appRoot, "public/emulators/pcsx2/pcsx2.exe");
+        const command = `${emulatorPath} "${gamePath}" --fullscreen`;
+        try {
+            exec(command, (error, stdout, stderr) => null);
+        } catch (e) {
+            console.log(e);
+        }
+
+        lepikEvents.events.on('keyPress', async (data) => {
+            if (data === "e") {
+                try {
+                    await new Promise((resolve, reject) => {
+                        exec('tasklist | find /i "pcsx2.exe" && taskkill /im pcsx2.exe /F || echo process "pcsx2.exe" not running.', (error, stdout, stderr) => {
+                            if (error || stderr) {
+                                console.log(error);
+                                console.log(stderr);
+                                reject(error);
+                            }
+                        });
+                    });
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        });
     }
 
-    let postingUrl = await axios.post(url).then(res => res.data);
-    postingUrl = JSON.parse(JSON.stringify(postingUrl)).link;
-    await download(postingUrl, formData, data, emulator, socket);
+    return module;
 }

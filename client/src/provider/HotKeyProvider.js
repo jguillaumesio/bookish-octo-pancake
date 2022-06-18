@@ -1,34 +1,40 @@
-import React, {useEffect, useRef} from 'react';
-import { makeStyles} from "@mui/styles";
+import React, {createContext, useEffect} from 'react';
+import {makeStyles} from "@mui/styles";
 
-export const context = React.createContext({setRef: null});
+export const KeyContext = createContext([]);
 
 const useStyle = makeStyles({
-    root:{
-        "&:focus":{
-            outline:'0px solid transparent'
+    root: {
+        "&:focus": {
+            outline: '0px solid transparent'
         }
     }
 });
 
-export const HotKeyProvider = ({children, onKeyPress, ...props}) => {
+export const HotKeyProvider = (props) => {
 
     const classes = useStyle();
+    const {keys, setKeys} = props;
 
     const listener = (e) => {
-        onKeyPress.find(key => key.name === e.key)?.callback();
+        keys.find(key => key.keyboard === e.key)?.callback();
     }
 
     useEffect(() => {
+        console.log(keys);
+    },[keys])
+
+    //TODO https://developer.mozilla.org/en-US/docs/Games/Techniques/Controls_Gamepad_API
+    useEffect(() => {
         window.addEventListener('keydown', listener);
         return () => {
-            window.removeEventListener('keydown',listener);
+            window.removeEventListener('keydown', listener);
         }
-    }, [onKeyPress]);
+    }, [keys]);
 
     return (
-        <div tabIndex="0" className={classes.root} {...props}>
-            {children}
-        </div>
+        <KeyContext.Provider tabIndex="0" className={classes.root} value={[keys, setKeys]}>
+            {props.children}
+        </KeyContext.Provider>
     )
 }

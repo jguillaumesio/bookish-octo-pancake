@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const editDistance = (s1, s2) => {
     s1 = s1.toLowerCase();
     s2 = s2.toLowerCase();
@@ -39,14 +41,6 @@ exports.stringsSimilarityPercentage = (s1, s2) => {
     return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
 }
 
-exports.watchVariable = (variable, onChange, ...args) => {
-    return new Proxy(JSON.parse ('{"watch":' + j + '}'), {
-        set: (target, property, value) => {
-            onChange(args);
-        }
-    });
-}
-
 exports.replaceAll = (string, find, replace) => {
     let regex;
     for (let i = 0; i < find.length; i++) {
@@ -56,18 +50,10 @@ exports.replaceAll = (string, find, replace) => {
     return string;
 };
 
-exports.addToJSONFile = (file, toAdd) => {
-    const fs = require('fs');
-    fs.readFile(file, 'utf8', (err,data) => {
-        if (err) {
-            return console.log(err);
-        }
-        const result = JSON.stringify({ ...JSON.parse(data), ...toAdd });
-
-        fs.writeFile(file, result, 'utf8', (err) => {
-            if (err){
-                return console.log(err);
-            }
+exports.createJSONFile = (file, content) => {
+    if(!fs.existsSync(file)){
+        fs.writeFile(file, content, (err) => {
+            if (err) throw err
         });
-    });
+    }
 }

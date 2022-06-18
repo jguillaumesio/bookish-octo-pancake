@@ -20,7 +20,7 @@ export const TextGameList = (props) => {
     const classes = useStyle();
 
     return(
-        <List sx={{ width:"100%", height: 'auto', padding:'20px', boxSizing:'border-box' }}>
+        <List sx={{ width:"100%", height: 'auto', boxSizing:'border-box' }}>
             {games.map((game, index) => (
                 <ListItem key={index} className={classes.item} onClick={() => onClick(game)}>
                     <ListItemText primary={game.name}/>

@@ -1,7 +1,5 @@
 import {useEffect, useState} from "react";
 import useWindowDimensions from "../hook/useWindowDimensions";
-import {useNavigate} from "react-router-dom";
-import {HotKeyProvider} from "../provider/HotKeyProvider";
 
 export const GameCaroussel = (props) => {
 
@@ -67,20 +65,15 @@ export const GameCaroussel = (props) => {
     }
 
     return (
-        <HotKeyProvider
-            style={{display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%'}}
-            onKeyPress={keyEvents}
-        >
-            <div style={{
-                display: 'flex',
-                transition: `transform ${transition}ms ease-in-out`,
-                transform: `translateX(${offset}px)`
-            }}>
-                {games.map((game, index) => (
-                    <img key={index} src={game.thumbnail} alt={game.name}
-                         style={handleItemStyle(game)}/>
-                ))}
-            </div>
-        </HotKeyProvider>
+        <div style={{
+            display: 'flex',
+            transition: `transform ${transition}ms ease-in-out`,
+            transform: `translateX(${offset}px)`
+        }}>
+            {games.map((game, index) => (
+                <img key={index} src={game.thumbnail} alt={game.name}
+                     style={handleItemStyle(game)}/>
+            ))}
+        </div>
     )
 }

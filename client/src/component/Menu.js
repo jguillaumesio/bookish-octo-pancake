@@ -1,6 +1,5 @@
 import {useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {HotKeyProvider} from "../provider/HotKeyProvider";
 
 export const Menu = (props) => {
 
@@ -78,32 +77,30 @@ export const Menu = (props) => {
     ]
 
     return (
-        <HotKeyProvider onKeyPress={keyEvents}>
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                margin: '0 auto',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%',
-            }}>
-                {emulatorList.map((row, rowIndex) =>
-                    <ul key={rowIndex}
-                        style={{display: 'inline-flex', padding: '40px', margin: '0', listStyleType: 'none'}}>
-                        {row.map((item, columnIndex) =>
-                            <li key={item} style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '20px'
-                            }}>
-                                <img style={handleItemStyle(item, [rowIndex, columnIndex])}
-                                     src={`/emulators/${item}.png`} alt={item}/>
-                            </li>
-                        )}
-                    </ul>
-                )}
-            </div>
-        </HotKeyProvider>
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            margin: '0 auto',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+        }}>
+            {emulatorList.map((row, rowIndex) =>
+                <ul key={rowIndex}
+                    style={{display: 'inline-flex', padding: '40px', margin: '0', listStyleType: 'none'}}>
+                    {row.map((item, columnIndex) =>
+                        <li key={item} style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '20px'
+                        }}>
+                            <img style={handleItemStyle(item, [rowIndex, columnIndex])}
+                                 src={`/emulators/${item}.png`} alt={item}/>
+                        </li>
+                    )}
+                </ul>
+            )}
+        </div>
     )
 }

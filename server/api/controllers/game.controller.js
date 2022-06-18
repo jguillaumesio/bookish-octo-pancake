@@ -1,18 +1,7 @@
-const HTMLParser = require('node-html-parser');
 const fs = require("fs");
 const axios = require("axios");
-const { PS2Repositories } = require("./../../resources/games");
-const { stringsSimilarityPercentage } = require("./../../utils");
-
-const parseDirectory = (name) => {
-    const regex = /(\(.*?\)|(.zip))/gm;
-    const regex1 = /[^a-zA-Z0-9 :]/g;
-    const regex2 = /(\s+)/gm;
-    name = name.replace(regex, "");
-    name = name.replace(regex1, "");
-    name = name.trim();
-    return name.replace(regex2, "-");
-}
+const {stringsSimilarityPercentage} = require("./../../utils");
+const path = require("path");
 
 const _findByEmulator = emulator => {
     const directory = `${appRoot}/public/games/${emulator}`;
@@ -20,12 +9,12 @@ const _findByEmulator = emulator => {
     let files;
     let result;
     if (fs.existsSync(directory)) {
-        try{
+        try {
             files = fs.readdirSync(directory);
             files.forEach(folder => {
                 if (fs.lstatSync(`${directory}/${folder}`).isDirectory()) {
                     let informations = JSON.parse(fs.readFileSync(`${directory}/${folder}/${process.env.INFORMATIONS_FILENAME}`));
-                    if(informations.downloaded){
+                    if (informations.downloaded) {
                         games.push(informations);
                     }
                 }
@@ -34,10 +23,9 @@ const _findByEmulator = emulator => {
                 type: 'success',
                 value: games
             };
-        }
-        catch(e){
+        } catch (e) {
             result = {
-                type:'error',
+                type: 'error',
                 value: 'Error trying to read the emulator directory'
             }
         }
@@ -56,20 +44,26 @@ const authenticate = async (token) => {
     return response["access_token"];
 }
 
-const parseName = (name) => {
-    const regex = /(\(.*?\)|(.zip))/gm;
-    name = name.replace(regex, "");
-    return name.trim();
-}
-
 const _searchGameDetails = (search, token) => {
     return axios({
         url: "https://api.igdb.com/v4/games",
         method: 'POST',
-        headers: {'Accept': 'application/json', 'Client-ID': process.env.CLIENT_ID, 'Authorization': `Bearer ${token}`,},
-        data: `fields name; where platforms = (8) & name ~ *"${search}"*;`
+        headers: {
+            'Accept': 'application/json',
+            'Client-ID': process.env.CLIENT_ID,
+            'Authorization': `Bearer ${token}`,
+        },
+        data: `fields name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${search}"*;`
     })
-        .then(response => response.data)
+        .then(response => response.data.map(e => {
+            return {
+                ...e,
+                "cover": {"url": e?.cover?.url?.replace("t_thumb", "t_cover_big")},
+                "screenshots": e?.screenshots?.map(s => {
+                    return {...s, "url": s.url.replace("t_thumb", "t_original")}
+                })
+            }
+        }))
         .catch(err => {
             console.log(err);
             return [];
@@ -79,66 +73,15 @@ const _searchGameDetails = (search, token) => {
 const keepBestMatch = (matches, toMatch) => {
     matches = matches.map(e => {
         return {
-            matchPercentage: stringsSimilarityPercentage(e.name, toMatch),
+            matchPercentage: (e.name) ? stringsSimilarityPercentage(e.name, toMatch) : 0,
             ...e
         }
     });
-    return matches.reduce( (bestMatch, element) => (element.matchPercentage > bestMatch.matchPercentage) ? element : bestMatch, matches[0]);
+    return matches.reduce((bestMatch, element) => (element.matchPercentage > bestMatch.matchPercentage) ? element : bestMatch, matches[0]);
 }
 
-module.exports = (app,token) => {
+module.exports = (app, token) => {
     const module = {};
-    module.findNewByEmulator = async (req, res) => {
-        const emulator = req.params.emulator;
-
-        const games = [];
-        for (let repository of PS2Repositories) { //change by emulator
-            const url = repository.link;
-            let page;
-            try {
-                page = await axios.get(url).then(response => response.data);
-            } catch (e) {
-                console.log(e);
-                continue;
-            }
-            page = HTMLParser.parse(page.toString(), {blockTextElements: {pre: true}})
-                .getElementsByTagName("html")[0]
-                .getElementsByTagName("body")[0]
-                .getElementById("wrap")
-                .getElementById("maincontent")
-                .querySelectorAll(".container")[0]
-                .querySelectorAll(".download-directory-listing")[0]
-                .querySelectorAll("pre")[0];
-            page = HTMLParser.parse(page.firstChild.rawText)
-                .querySelectorAll("table")[0]
-                .querySelectorAll("tr");
-            for (let i of page) {
-                let row = i.querySelectorAll("td");
-                for (let y of row) {
-                    const link = y.querySelectorAll("a")[0];
-                    if (link && link.getAttribute("href").includes(".zip")) {
-                        games.push({
-                            rawName: link.rawText,
-                            name: parseName(link.rawText),
-                            directory: parseDirectory(link.rawText),
-                            url: `${url}/${link.getAttribute("href")}`
-                        });
-                    }
-                }
-            }
-        }
-
-        const filteredGames = games.reduce((list, game) => {
-            const index = list.findIndex(i => i.name === game.name);
-            (index === -1) ? list.push({name: game.name, games: [game]}) : list[index].games.push(game);
-            return list;
-        }, []);
-
-        res.send({
-            type: 'success',
-            value: filteredGames
-        })
-    }
     module.searchGameDetails = async (req, res) => {
         const {search} = req.params;
         const searchArray = search.split("-").map(e => e.trim());
@@ -146,15 +89,14 @@ module.exports = (app,token) => {
 
         let response = await _searchGameDetails(search, token);
         let i = 0;
-        if(response.length === 0 && searchArray !== 0){
-            while (response.length === 0 && i < searchArray.length){
-                console.log(searchArray[i]);
-                response = await _searchGameDetails(searchArray[i], token);
+        if (response.length === 0 && searchArray !== 0) {
+            response = [];
+            for (let i of searchArray) {
+                const result = await _searchGameDetails(i, token);
+                response.push(...result);
                 i++;
             }
         }
-
-
 
         res.send({
             type: "success",

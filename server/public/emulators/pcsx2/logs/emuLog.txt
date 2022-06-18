@@ -1,0 +1,177 @@
+PCSX2 1.6.0-20200506140834- compiled on May  6 2020
+Savestate version: 0x9a0e0000
+
+Host Machine Init:
+	Operating System =  Microsoft Windows 10 Pro (build 19044), 64-bit
+	Physical RAM     =  16289 MB
+	CPU name         =  Intel(R) Core(TM) i7-4610M CPU @ 3.00GHz
+	Vendor/Model     =  GenuineIntel (stepping 03)
+	CPU speed        =  2.992 ghz (4 logical threads)
+	x86PType         =  Standard OEM
+	x86Flags         =  bfebfbff 7ffafbff
+	x86EFlags        =  2c100000
+
+x86 Features Detected:
+	SSE2.. SSE3.. SSSE3.. SSE4.1.. SSE4.2.. AVX.. AVX2.. FMA
+
+Reserving memory for recompilers...
+
+Loading plugins from C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\plugins...
+	Bound   GS: GSdx32-AVX2.dll [GSdx 20200506140834 (MSVC 19.25 AVX2/AVX2) 1.2.0]
+	Bound  PAD: LilyPad.dll [LilyPad (20200506140834) 0.12.1]
+	Bound SPU2: Spu2-X.dll [SPU2-X 20200506140834 2.0.0]
+	Bound CDVD: cdvdGigaherz.dll [cdvdGigaherz 20200506140834 0.11.0]
+	Bound  USB: USBnull.dll [USBnull Driver 20200506140834 0.7.0]
+	Bound   FW: FWnull.dll [FWnull Driver 20200506140834 0.7.0]
+(GameDB) 9858 games on record (loaded in 183ms)
+	Bound DEV9: DEV9null.dll [DEV9null Driver 20200506140834 0.5.0]
+Plugins loaded successfully.
+
+HLE Notice: ELF does not have a path.
+
+Initializing plugins...
+	Init GS
+	Init PAD
+	Init SPU2
+	Init CDVD
+	Init USB
+	Init FW
+	Init DEV9
+Plugins initialized successfully.
+
+Patches: No CRC found, using 00000000 instead.
+Opening plugins...
+	Opening GS
+	Opening PAD
+	Opening SPU2
+	Opening CDVD
+isoFile open ok: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\games\ps2\Need-for-Speed-Carbon\game.iso
+	Image type  = DVD
+ * CDVD Disk Open: DVD, Single layer or unknown:
+ * * Track 1: Data (Mode 1) (1830832 sectors)
+	Opening USB
+	Opening FW
+	Opening DEV9
+3.x GL context successfully created
+OpenGL information. GPU: Quadro K3100M/PCIe/SSE2. Vendor: NVIDIA Corporation. Driver: NVIDIA 392.68
+INFO: GL_ARB_sparse_texture is NOT SUPPORTED
+INFO: GL_ARB_sparse_texture2 is NOT SUPPORTED
+INFO: GL_ARB_gpu_shader5 is available
+INFO: GL_ARB_shader_image_load_store is available
+INFO: GL_ARB_compute_shader is available
+INFO: GL_ARB_shader_storage_buffer_object is available
+INFO: GL_ARB_texture_view is available
+INFO: GL_ARB_vertex_attrib_binding is available
+INFO: GL_ARB_clear_texture is available
+INFO: GL_ARB_multi_bind is available
+INFO: GL_ARB_direct_state_access is available
+INFO: GL_ARB_texture_barrier is available
+INFO: GL_ARB_get_texture_sub_image is available
+
+Current Renderer: OpenGL (Hardware renderer)
+Available VRAM/RAM:3840MB for textures
+GSdx Lookup CRC:0
+McdSlot 0 [File]: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\memcards\Mcd001.ps2
+McdSlot 1 [File]: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\memcards\Mcd002.ps2
+GSdx Lookup CRC:0
+Plugins opened successfully.
+EE/iR5900-32 Recompiler Reset
+	Bios Found: Europe  v02.20(10/02/2006)  Console
+	BIOS rom1 module not found, skipping...
+	BIOS rom2 module not found, skipping...
+	BIOS erom module not found, skipping...
+# Initialize memory (rev:3.70, ctm:196Mhz, cpuclk:147Mhz detected)
+
+PlayStation 2 ======== Hard reset boot
+ ROMGEN=2006-0210, IOP info (CPUID=1f, CACH_CONFIG=14000200, 2MB, IOP mode)
+ <20060210-142424,ROMconf,PS20220WC20060210.bin:11824>
+# Total accessable memory size: 32 MB (B:2:8:0) (370:2:7c30)
+# TLB spad=0 kernel=1:12 default=13:30 extended=31:38
+# Initialize Start.
+# Initialize GS ...
+# Initialize INTC ...
+# Initialize TIMER ...
+# Initialize DMAC ...
+# Initialize VU1 ...
+# Initialize VIF1 ...
+# Initialize GIF ...
+# Initialize VU0 ...
+# Initialize VIF0 ...
+# Initialize IPU ...
+# Initialize FPU ...
+# Initialize User Memory ...
+# Initialize Scratch Pad ...
+# Initialize Done.
+
+EE DECI2 Manager version 0.06 Apr  7 2005 21:09:14
+  CPUID=2e20, BoardID=0, ROMGEN=2006-0210, 32M
+
+Patches: No CRC found, using 00000000 instead.
+(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_544.93;1
+(SYSTEM.CNF) Software version = 1.01
+(SYSTEM.CNF) Disc region type = PAL
+ELF (cdrom0:\SLES_544.93;1) Game CRC = 0x58BED00E, EntryPoint = 0x004E2CA0
+(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_544.93;1
+(SYSTEM.CNF) Software version = 1.01
+(SYSTEM.CNF) Disc region type = PAL
+LilyPad: Warning! No controls are bound to a currently attached device!
+Please attach a controller that has been setup for use with LilyPad or go to the Plugin settings and setup new controls.
+
+IOP Realtime Kernel Ver.0.9.1
+    Copyright 1999 (C) Sony Computer Entertainment Inc. 
+Reboot service module.(99/11/10)
+cdvd driver module version 0.1.1 (C)SCEI
+Load File service.(99/11/05)
+Multi Threaded Fileio module.(99/11/15) 
+iop heap service (99/11/03)
+loadelf: fname cdrom0:¥SLES_544.93;1 secname all
+loadelf version 3.30
+Input ELF format filename = cdrom0:¥SLES_544.93;1
+0 00100000 005914a8 ..........................................................................................
+Loaded, cdrom0:¥SLES_544.93;1
+start address 0x4e2ca0
+gp address 00000000
+# Restart Without Memory Clear.
+# Initialize GS ...
+# Initialize INTC ...
+# Initialize TIMER ...
+# Initialize DMAC ...
+# Initialize VU1 ...
+# Initialize VIF1 ...
+# Initialize GIF ...
+# Initialize VU0 ...
+# Initialize VIF0 ...
+# Initialize IPU ...
+# Initialize FPU ...
+# Initialize Scratch Pad ...
+# Restart Without Memory Clear Done.
+Elf entry point @ 0x004e2ca0 about to get recompiled. Load patches first.
+(GameDB) Changing EE/FPU clamp mode [mode=3]
+EE/iR5900-32 Recompiler Reset
+GSdx Lookup CRC:58BED00E
+GSdx Lookup CRC:58BED00E
+main() argc = 1
+    0 : 'cdrom0:¥SLES_544.93;1'
+Get Reboot Request From EE
+ROM directory not found
+
+PlayStation 2 ======== Update rebooting..
+
+PlayStation 2 ======== Update reboot complete
+cdvdman Init
+
+IOP Realtime Kernel Ver. 2.2
+    Copyright 1999-2002 (C) Sony Computer Entertainment Inc. 
+Reboot service module.(99/11/10)
+cdvd driver module version 0.1.1 (C)SCEI
+Load File service.(99/11/05)
+Multi Threaded Fileio module.(99/11/15) 
+iop heap service (99/11/03)
+SDR driver version 4.0.1 (C) SCEI
+ Exit rsd_main 
+USB Driver (Version 1.1.0)
+LgDev_tb_rb_Driver Version 1.12.008 ( Wheel ), built on Aug 17 2006 at 15:00:30, thpri=42,43
+  fixed memory allocations for 2 devices and 8 effects
+(UpdateVSyncRate) Mode Changed to PAL.
+(UpdateVSyncRate) FPS Limit Changed : 50,00 fps
+

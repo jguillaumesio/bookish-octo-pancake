@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "node-7z": "^3.0.0",
+    "unrar-promise": "^3.0.0-1"
+  }
+}

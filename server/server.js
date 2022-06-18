@@ -5,8 +5,6 @@ const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
 
-const gameController = require("./api/controllers/game.controller");
-
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
@@ -21,8 +19,8 @@ let token = null;
 app.use(cors({
     origin: process.env.CLIENT_URL
 }));
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static('public'));
 
 require("./api/routes")(app, token);
