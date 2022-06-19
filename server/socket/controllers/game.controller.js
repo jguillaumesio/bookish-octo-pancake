@@ -1,14 +1,13 @@
-const HTMLParser = require('node-html-parser');
 const fs = require("fs");
 const axios = require("axios");
 const path = require('path');
 const yauzl = require("yauzl");
-const {PS2Repositories} = require("../../resources/games");
 const {mergeFiles} = require('split-file');
-const puppeteer = require('puppeteer');
 const qs = require("qs");
 const {exec} = require("child_process");
 const lepikEvents = require('lepikevents');
+
+const gamesDirectory = `${appRoot}/public/games`;
 
 const generateDownloadChunksHeaders = (total, cookie, directory) => {
     const threads = [];
@@ -65,22 +64,6 @@ const downloadChunk = async (url, thread) => {
             }
         });
     });
-}
-
-const parseDirectory = (name) => {
-    const regex = /(\(.*?\)|(.zip))/gm;
-    const regex1 = /[^a-zA-Z0-9 :]/g;
-    const regex2 = /(\s+)/gm;
-    name = name.replace(regex, "");
-    name = name.replace(regex1, "");
-    name = name.trim();
-    return name.replace(regex2, "-");
-}
-
-const parseName = (name) => {
-    const regex = /(\(.*?\)|(.zip))/gm;
-    name = name.replace(regex, "");
-    return name.trim();
 }
 
 const connectToRepository = async () => {
@@ -140,64 +123,12 @@ const unZip = async (file, output) => {
     });
 }
 
-const filterGames = (games) => {
-    return games.reduce((list, game) => {
-        const index = list.findIndex(i => i.name === game.name);
-        (index === -1) ? list.push({name: game.name, games: [game]}) : list[index].games.push(game);
-        return list;
-    }, []);
-}
-
 module.exports = () => {
     const module = {};
 
-    module.findNewByEmulator = async (socket) => {
-        for (let repository of PS2Repositories) { //change by emulator
-            const games = [];
-            const url = repository.link;
-            let page;
-            try {
-                page = await axios.get(url).then(response => response.data);
-            } catch (e) {
-                console.log(e);
-                continue;
-            }
-            page = HTMLParser.parse(page.toString(), {blockTextElements: {pre: true}})
-                .getElementsByTagName("html")[0]
-                .getElementsByTagName("body")[0]
-                .getElementById("wrap")
-                .getElementById("maincontent")
-                .querySelectorAll(".container")[0]
-                .querySelectorAll(".download-directory-listing")[0]
-                .querySelectorAll("pre")[0];
-            page = HTMLParser.parse(page.firstChild.rawText)
-                .querySelectorAll("table")[0]
-                .querySelectorAll("tr");
-            for (let i of page) {
-                let row = i.querySelectorAll("td");
-                for (let y of row) {
-                    const link = y.querySelectorAll("a")[0];
-                    if (link && link.getAttribute("href").includes(".zip")) {
-                        games.push({
-                            rawName: link.rawText,
-                            name: parseName(link.rawText),
-                            directory: parseDirectory(link.rawText),
-                            url: `${url}/${link.getAttribute("href")}`
-                        });
-                    }
-                }
-            }
-            socket.emit("getNewGames", JSON.stringify({"games": filterGames(games)}));
-        }
-        socket.emit("endGetNewGames");
-    }
-    module.download = async (url, emulator, directory, name, socket) => {
-        console.log(url);
-        console.log(emulator);
-        console.log(directory);
-        console.log(name);
+    module.download = async (url, directory, name, socket) => {
         const cookie = await connectToRepository();
-        directory = (`${appRoot}/public/games/${emulator}/${directory}`).replace(/\\/g, '/');
+        directory = (`${gamesDirectory}/${directory}`).replace(/\\/g, '/');
         if (!fs.existsSync(directory)) {
             fs.mkdirSync(directory, {recursive: true});
         }

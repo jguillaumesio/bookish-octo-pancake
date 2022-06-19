@@ -3,9 +3,10 @@ module.exports = (app,token) => {
   
     const router = require("express").Router();
 
-    router.get("/:emulator/details/:search", games.searchGameDetails);
-    router.get("/:emulator/new", games.findNewByEmulator);
-    router.get("/:emulator", games.findByEmulator);
+    router.get("/new", games.getNewGameList);
+    router.get("/refresh", games.refreshNewGameList);
+    router.get("/details/:search", games.searchGameDetails);
+    router.get("/", games.getGames);
   
     app.use('/api/games', router);
   };

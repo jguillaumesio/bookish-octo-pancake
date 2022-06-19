@@ -11,11 +11,8 @@ ReactDOM.render(
             <Route path="/" element={<StyleProvider/>}>
                 <Route index element={<HomeIndex/>}/>
                 <Route path="emulators">
-                    <Route index element={<EmulatorListIndex/>}/>
-                    <Route path=":emulator">
-                        <Route path="new" element={<NewGameListIndex/>}/>
-                        <Route index element={<GameListIndex/>}/>
-                    </Route>
+                    <Route path="new" element={<NewGameListIndex/>}/>
+                    <Route index element={<GameListIndex/>}/>
                 </Route>
                 <Route path="downloads" element={null}/>
             </Route>

@@ -12,12 +12,18 @@ export const NewGameListIndex = () => {
     const [games,setGames] = useState([]);
     const [open, setOpen] = React.useState(false);
     const [gameDetails, setGameDetail] = React.useState(null);
-    const {emulator} = useParams();
     const [_, setKeys] = React.useContext(KeyContext);
 
-    useEffect(() => {
+    useEffect(async () => {
         setKeys(keyEvents);
-        GameDataService.getNewByEmulator((newGames) => setGames(newGames));
+        try{
+            const result = await GameDataService.getNewGameList().then(res => res.data);
+            if("type" in result && result.type === "success"){
+                setGames(result.value);
+            }
+        }catch(e){
+            console.log(e);
+        }
     },[]);
 
     const handleDialog = (state) => {
@@ -46,19 +52,19 @@ export const NewGameListIndex = () => {
 
     const getGameDetails = async (game) => {
         handleDialog(true);
-        const response = await GameDataService.getGameDetails(emulator, game.name).then(response => response.data.value);
+        const response = await GameDataService.searchGameDetails(game.name).then(response => response.data.value);
         setGameDetail({...game, ...response});
     }
 
     const download = (game) => {
-        GameDataService.download(game.url, "ps2", game.directory, game.name);
+        GameDataService.download(game.url, game.directory, game.name);
     }
 
     return (
         <div className="container" >
             <div className="content" >
                 <FullScreenDialog game={gameDetails} open={open} handleDialog={handleDialog} download={download}/>
-                <TextGameList games={games} emulator={emulator} onClick={getGameDetails} download={download}/>
+                <TextGameList games={games} onClick={getGameDetails} download={download}/>
             </div>
         </div>
     )

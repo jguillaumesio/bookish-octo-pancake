@@ -8,35 +8,26 @@ class GameDataService {
         this.root = `http://127.0.0.1:8080/api/games`;
     }
 
-    getGameDetails(emulator, search){
-        return axios.get(`${this.root}/${emulator}/details/${search}`)
+    searchGameDetails(search){
+        return axios.get(`${this.root}/details/${search}`)
     }
 
-    getByEmulator(emulator){
-        return axios.get(`${this.root}/${emulator}`);
+    refreshNewGameList(){
+        return axios.get(`${this.root}/refresh`);
     }
 
-    download(url, emulator, directory, name){
+    getNewGameList(){
+        return axios.get(`${this.root}/new`);
+    }
+
+    getGames(){
+        return axios.get(`${this.root}/`);
+    }
+
+    download(url, directory, name){
         this.socket = this.socket ?? socketIOClient('http://127.0.0.1:8080');
-        this.socket.emit('download', {"url":url, "emulator":emulator, "directory":directory, "name":name});
+        this.socket.emit('download', {"url":url, "directory":directory, "name":name});
         this.socket.on('download',({percentage, name}) => console.log(`${name}: ${percentage}%`));
-        this.socket.on('disconnect',() => this.socket = null);
-    }
-
-    getNewByEmulator(setGames){
-        const games = [];
-        const setNewGames = (data) => {
-            console.log(games.length);
-            games.push(...JSON.parse(data).games);
-            setGames([...games]);
-        };
-        this.socket = this.socket ?? socketIOClient('http://127.0.0.1:8080');
-        this.socket.emit('getNewGames', {});
-        this.socket.on('getNewGames', setNewGames);
-        this.socket.once('endGetNewGames',() => {
-            this.socket.off("getNewGames", setNewGames);
-            console.log("off");
-        });
         this.socket.on('disconnect',() => this.socket = null);
     }
 

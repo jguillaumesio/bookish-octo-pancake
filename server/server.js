@@ -14,6 +14,7 @@ const io = socketio(server, {
 });
 
 global.appRoot = __dirname;
+
 let token = null;
 
 app.use(cors({
