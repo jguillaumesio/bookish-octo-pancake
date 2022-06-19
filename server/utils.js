@@ -27,7 +27,14 @@ const editDistance = (s1, s2) => {
     return costs[s2.length];
 }
 
+const _compareArrayElements = (firstArray, secondArray) => {
+    return firstArray.length === secondArray.length && firstArray.every(element => secondArray.includes(element));
+}
+
 exports.stringsSimilarityPercentage = (s1, s2) => {
+    if( _compareArrayElements(s1.split(/-| /), s2.split(/-| /))){
+        return 1.0;
+    }
     let longer = s1;
     let shorter = s2;
     if (s1.length < s2.length) {
@@ -56,4 +63,23 @@ exports.createJSONFile = (file, content) => {
             if (err) throw err
         });
     }
+}
+
+exports.decimalTo32octetsBinary = (number) => {
+    const binary = [];
+    for(let i = 31; i > -1; i--){
+        const bit = (number >= Math.pow(2, i)) ? 1 : 0;
+        number = (bit === 1) ? number - Math.pow(2, i) : number;
+        binary.push(bit);
+    }
+    return binary;
+}
+
+exports.binaryToDecimal = (binaryString) => {
+    let result = 0;
+    binaryString = binaryString.split("").reverse().join("");
+    for(let i = 0; i < binaryString.length; i++){
+        result += (binaryString[i] === "1") ? Math.pow(2, i) : 0;
+    }
+    return result;
 }

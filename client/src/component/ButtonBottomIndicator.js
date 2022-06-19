@@ -29,8 +29,8 @@ export const ButtonBottomIndicator = (props) => {
         <div className={classes.footer}>
             {
                 (buttons ?? []).map(button =>
-                    <div key={button.keyboard} style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                        <img src={button.icon} alt={'back'} style={{display: 'block', height: '30px', width: '30px'}}/>
+                    <div key={button.keyboard} style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', margin:'0 5px'}}>
+                        <img src={button.icon} alt={'back'} style={{display: 'block', height: '30px', width: '30px', filter: "drop-shadow(0px 0px 2px rgba(0,0,0,0.2))"}}/>
                         <span style={{padding: '5px'}}>{button.label ?? ""}</span>
                     </div>
                 )

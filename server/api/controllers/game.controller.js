@@ -4,6 +4,7 @@ const {stringsSimilarityPercentage} = require("./../../utils");
 const path = require("path");
 const {PS2Repositories} = require("../../resources/games");
 const HTMLParser = require("node-html-parser");
+const {decimalTo32octetsBinary, binaryToDecimal} = require("../../utils");
 
 const gamesDirectory = `${appRoot}/public/games`;
 
@@ -13,7 +14,48 @@ const authenticate = async () => {
     return response["access_token"];
 }
 
+const _parseCompaniesLogo = companies => {
+    for(let object of companies){
+        console.log(object);
+        if("company" in object && "logo" in object.company && "url" in object.company.logo)
+            object.company.logo.url = object.company.logo.url.replace("t_thumb","t_logo_med").replace(".jpg",".png");
+    }
+    return companies
+}
+
+const _findTag = async (id, typeId, token) => {
+    const types = ["themes","genres","keywords",null,"player_perspectives"]
+    if(typeId !== 3){
+        try {
+            return await axios({
+                url: `https://api.igdb.com/v4/${types[typeId]}`,
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Client-ID': process.env.CLIENT_ID,
+                    'Authorization': `Bearer ${token}`,
+                },
+                data: `fields name; where id = (${id});`
+            }).then(response => response.data.map(e => {return { ...e, "type": types[typeId]}}));
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
+const parseGameDetailsTag = async (tags, token) => {
+    const result = [];
+    for (let i of tags) {
+        const binary = decimalTo32octetsBinary(i);
+        const tagsDetails = await _findTag(binaryToDecimal(binary.slice(4, 32).join("")), binaryToDecimal(binary.slice(0, 4).join("")), token);
+        result.push(...tagsDetails);
+    }
+    return result;
+}
+
 const _searchGameDetails = (search, token) => {
+
     return axios({
         url: "https://api.igdb.com/v4/games",
         method: 'POST',
@@ -22,7 +64,7 @@ const _searchGameDetails = (search, token) => {
             'Client-ID': process.env.CLIENT_ID,
             'Authorization': `Bearer ${token}`,
         },
-        data: `fields name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${search}"*;`
+        data: `fields category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${search}"*;`
     })
         .then(response => response.data.map(e => {
             return {
@@ -39,13 +81,7 @@ const _searchGameDetails = (search, token) => {
         });
 }
 
-const keepBestMatch = (matches, toMatch) => {
-    matches = matches.map(e => {
-        return {
-            matchPercentage: (e.name) ? stringsSimilarityPercentage(e.name, toMatch) : 0,
-            ...e
-        }
-    });
+const keepBestMatch = (matches) => {
     return matches.reduce((bestMatch, element) => (element.matchPercentage > bestMatch.matchPercentage) ? element : bestMatch, matches[0]);
 }
 
@@ -149,22 +185,41 @@ module.exports = (app, token) => {
 
     module.searchGameDetails = async (req, res) => {
         const {search} = req.params;
-        const searchArray = search.split("-").map(e => e.trim());
+        const searchArray = search.split(/-| /).map(e => e.trim());
         token = (!token) ? await authenticate(token) : token;
 
         let response = await _searchGameDetails(search, token);
+        response = response.map(game => { return{
+            ...game,
+            matchPercentage: stringsSimilarityPercentage(game.name, search)
+        }});
         if (response.length === 0 && searchArray !== 0) {
             response = [];
             for (let i of searchArray) {
-                const result = await _searchGameDetails(i, token);
+                let result = await _searchGameDetails(i, token);
+                result = result.map(game => { return{
+                    ...game,
+                    matchPercentage: stringsSimilarityPercentage(game.name, search)
+                }});
                 response.push(...result);
+                if(result.findIndex(game => game.matchPercentage === 1) !== -1){
+                    break;
+                }
                 i++;
             }
         }
 
+        const game = keepBestMatch(response);
+        if("tags" in game){
+            game.tags = await parseGameDetailsTag(game.tags,token);
+        }
+        if("involved_companies" in game){
+            game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+        }
+
         res.send({
             type: "success",
-            value: keepBestMatch(response, search)
+            value: game
         });
     }
 
