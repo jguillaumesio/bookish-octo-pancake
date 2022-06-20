@@ -5,24 +5,6 @@ import {ButtonBottomIndicator} from "../component/ButtonBottomIndicator";
 import {HotKeyProvider} from "./HotKeyProvider";
 import {makeStyles} from "@mui/styles";
 
-const useStyle = makeStyles({
-    'customScrollbar':{
-        '&::-webkit-scrollbar': {
-            background: 'rgba(0,0,0,0.5)',
-            width:'25px',
-        },
-        '&::-webkit-scrollbar-track': {
-            margin:'5px'
-        },
-        '&::-webkit-scrollbar-thumb': {
-            'backgroundClip': 'padding-box',
-            backgroundColor: '#121212',
-            'borderRight':'5px solid transparent',
-            'borderLeft':'5px solid transparent',
-        }
-    },
-})
-
 const style = {
     'body': {
         overflow: 'overlay',
@@ -35,25 +17,29 @@ const style = {
     '.container': {
         background: '#121212',
         display: 'flex',
-        minHeight: '100vh',
+        minHeight: 'calc(100vh - 50px)',
+        height: 'calc(100vh - 50px)',
+        maxHeight: 'calc(100vh - 50px)',
         flexDirection: 'column'
     },
     '.content': {
         display: 'flex',
-        flex: 1
+        flexDirection: 'column',
+        minHeight: '100%',
+        maxHeight: '100%',
+        height: '100%',
     }
 };
 
 export const StyleProvider = () => {
 
-    const classes = useStyle();
     const [keys, setKeys] = useState([]);
 
     return (
         <React.Fragment>
             <HotKeyProvider keys={keys} setKeys={setKeys}>
                 <div style={{ display:'flex', flexDirection:'column', height:'100vh', overflow:"hidden"}}>
-                    <div className={ classes.customScrollbar } style={{ height:'calc(100% - 50px)', overflowY:"overlay"}}>
+                    <div style={{ height:'calc(100% - 50px)'}}>
                         <GlobalStyles styles={style}/>
                         <Outlet/>
                     </div>

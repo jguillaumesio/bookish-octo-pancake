@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import reportWebVitals from './reportWebVitals';
 import {BrowserRouter, Route, Routes} from "react-router-dom";
-import {HomeIndex, EmulatorListIndex, GameListIndex, NewGameListIndex} from "./route";
+import {HomeIndex, GameListIndex, NewGameListIndex, NewGameDetailsIndex} from "./route";
 import {StyleProvider} from "./provider/StyleProvider";
 
 ReactDOM.render(
@@ -11,7 +11,10 @@ ReactDOM.render(
             <Route path="/" element={<StyleProvider/>}>
                 <Route index element={<HomeIndex/>}/>
                 <Route path="emulators">
-                    <Route path="new" element={<NewGameListIndex/>}/>
+                    <Route path="new">
+                        <Route index element={<NewGameListIndex/>}/>
+                        <Route path=":name" element={<NewGameDetailsIndex/>}/>
+                    </Route>
                     <Route index element={<GameListIndex/>}/>
                 </Route>
                 <Route path="downloads" element={null}/>

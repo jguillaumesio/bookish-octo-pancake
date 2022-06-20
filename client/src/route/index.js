@@ -1,6 +1,6 @@
 import {HomeIndex} from "./home";
-import {NewGameListIndex} from "./emulatorNewGames";
-import {EmulatorListIndex} from "./emulators";
-import {GameListIndex} from "./emulatorGames";
+import {NewGameListIndex} from "./newGames";
+import {GameListIndex} from "./gameList";
+import {NewGameDetailsIndex} from "./newGameDetails";
 
-export { HomeIndex, NewGameListIndex, EmulatorListIndex, GameListIndex}
+export { HomeIndex, NewGameListIndex, GameListIndex, NewGameDetailsIndex}

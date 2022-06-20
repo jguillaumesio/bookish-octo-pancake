@@ -21,7 +21,6 @@ export const HotKeyProvider = (props) => {
     }
 
     useEffect(() => {
-        console.log(keys);
     },[keys])
 
     //TODO https://developer.mozilla.org/en-US/docs/Games/Techniques/Controls_Gamepad_API

@@ -11,7 +11,8 @@ const useStyle = makeStyles({
         width: '100%',
         height: 'fit-content',
         padding: '10px',
-        display: 'flex'
+        display: 'flex',
+        zIndex: 1
     }
 })
 
@@ -21,8 +22,6 @@ export const ButtonBottomIndicator = (props) => {
     const classes = useStyle();
 
     useEffect(() => {
-        console.log("voici les touches");
-        console.log(buttons);
     },[buttons]);
 
     return (
