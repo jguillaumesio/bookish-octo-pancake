@@ -71,9 +71,10 @@ export const NewGameDetailsIndex = () => {
         }
     },[galleryRef]);
 
-    const handleMove = () => {
+    const handleMove = (move) => {
+        const shift = (move === "right") ? 1 : -1;
         const modulo = (n, m) => ((n % m) + m) % m;
-        const newIndex = modulo(getSelectedIndex()+1, screenshots.length);
+        const newIndex = modulo(getSelectedIndex()+shift, screenshots.length);
         const newScreenshots = screenshots.map(e => {
             return {
                 ...e,
@@ -162,7 +163,7 @@ export const NewGameDetailsIndex = () => {
                                 </div>
                             </div>
                             <div ref={(el) => setGalleryRef(el)} style={{ position:"relative", width:"100%", overflow:"hidden", minHeight:"50%", maxHeight:"50%", height:"50%", padding:'20px 0'}}>
-                                <IconButton onClick={() => handleMove()} color="primary" component="span" style={{ position:"absolute", left:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
+                                <IconButton onClick={() => handleMove("left")} color="primary" component="span" style={{ position:"absolute", left:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
                                     <ChevronLeft />
                                 </IconButton>
                                 <div style={{ transform:`translateX(${screenshots[getSelectedIndex()].offset}px)`, display:"flex", flexDirection:"row", height:"100%"}}>
@@ -174,7 +175,7 @@ export const NewGameDetailsIndex = () => {
                                         ))
                                     }
                                 </div>
-                                <IconButton onClick={() => handleMove()} color="primary" component="span" style={{ position:"absolute", right:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
+                                <IconButton onClick={() => handleMove("right")} color="primary" component="span" style={{ position:"absolute", right:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
                                     <ChevronRight />
                                 </IconButton>
                             </div>
