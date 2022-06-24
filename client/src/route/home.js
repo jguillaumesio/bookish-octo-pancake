@@ -50,7 +50,7 @@ export const HomeIndex = () => {
         responsive: true,
         fluid: true,
         sources: [{
-            src: "http://stariptv.org:8080/wael2021/123456/34053?checkedby:iptvcat.com",
+            src: "https://networkbest.ru.com/cdn/premium123/chunks.m3u8?|Referer=https://player.licenses4.me/",
             type: 'application/x-mpegURL'
         }]
     };

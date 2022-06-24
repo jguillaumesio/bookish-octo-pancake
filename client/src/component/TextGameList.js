@@ -19,11 +19,16 @@ export const TextGameList = (props) => {
     let { games, onClick } = props;
     const classes = useStyle();
 
+    const htmlDecode = input => {
+        const doc = new DOMParser().parseFromString(input, "text/html");
+        return doc.documentElement.textContent;
+    }
+
     return(
         <List sx={{ width:"100%", height: 'auto', boxSizing:'border-box' }}>
             {games.map((game, index) => (
                 <ListItem key={index} className={classes.item} onClick={() => onClick(game)}>
-                    <ListItemText primary={game.name}/>
+                    <ListItemText primary={htmlDecode(game.name)}/>
                 </ListItem>))}
         </List>
     )

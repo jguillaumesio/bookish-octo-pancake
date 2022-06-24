@@ -162,23 +162,25 @@ export const NewGameDetailsIndex = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div ref={(el) => setGalleryRef(el)} style={{ position:"relative", width:"100%", overflow:"hidden", minHeight:"50%", maxHeight:"50%", height:"50%", padding:'20px 0'}}>
-                                <IconButton onClick={() => handleMove("left")} color="primary" component="span" style={{ position:"absolute", left:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
-                                    <ChevronLeft />
-                                </IconButton>
-                                <div style={{ transform:`translateX(${screenshots[getSelectedIndex()].offset}px)`, display:"flex", flexDirection:"row", height:"100%"}}>
-                                    { "screenshots" in gameDetails && gameDetails.screenshots.length > 0 &&
-                                        gameDetails?.screenshots?.map((image, index) => (
-                                            <figure key={index} className={(index === screenshots[getSelectedIndex()].index) ? classes.selectedScreenshot : classes.screenshot} style={{ margin:"0", padding:"0 20px" }}>
-                                                <img src={image.url} alt={image.url} style={{ height:"100%", width:"auto", display:"block"}}/>
-                                            </figure>
-                                        ))
-                                    }
+                            {   "screenshots" in gameDetails && gameDetails.screenshots.length > 0 &&
+                                <div ref={(el) => setGalleryRef(el)} style={{ position:"relative", width:"100%", overflow:"hidden", minHeight:"50%", maxHeight:"50%", height:"50%", padding:'20px 0'}}>
+                                    <IconButton onClick={() => handleMove("left")} color="primary" component="span" style={{ position:"absolute", left:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
+                                        <ChevronLeft />
+                                    </IconButton>
+                                    <div style={{ transform:`translateX(${screenshots[getSelectedIndex()].offset}px)`, display:"flex", flexDirection:"row", height:"100%"}}>
+                                        { "screenshots" in gameDetails && gameDetails.screenshots.length > 0 &&
+                                            gameDetails?.screenshots?.map((image, index) => (
+                                                <figure key={index} className={(index === screenshots[getSelectedIndex()].index) ? classes.selectedScreenshot : classes.screenshot} style={{ margin:"0", padding:"0 20px" }}>
+                                                    <img src={image.url} alt={image.url} style={{ height:"100%", width:"auto", display:"block"}}/>
+                                                </figure>
+                                            ))
+                                        }
+                                    </div>
+                                    <IconButton onClick={() => handleMove("right")} color="primary" component="span" style={{ position:"absolute", right:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
+                                        <ChevronRight />
+                                    </IconButton>
                                 </div>
-                                <IconButton onClick={() => handleMove("right")} color="primary" component="span" style={{ position:"absolute", right:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
-                                    <ChevronRight />
-                                </IconButton>
-                            </div>
+                            }
                         </div>
                 }
             </div>

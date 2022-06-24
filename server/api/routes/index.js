@@ -3,6 +3,8 @@ module.exports = (app,token) => {
   
     const router = require("express").Router();
 
+    router.get("/test",games.searchByGenre);
+    router.get("/test1",games.getGenres);
     router.get("/new", games.getNewGameList);
     router.get("/refresh", games.refreshNewGameList);
     router.get("/details/:search", games.searchGameDetails);
