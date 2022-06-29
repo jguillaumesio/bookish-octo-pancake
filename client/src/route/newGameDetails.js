@@ -4,7 +4,7 @@ import GameDataService from "../service/game.service";
 import * as React from "react";
 import {KeyContext} from '../provider/HotKeyProvider';
 import {buttons} from "../utils/pad";
-import {Button, Chip, CircularProgress, Rating, Dialog, DialogTitle, List, ListItem, ListItemText, Typography, IconButton} from "@mui/material";
+import {Chip, CircularProgress, Rating, Dialog, DialogTitle, List, ListItem, ListItemText, Typography, IconButton} from "@mui/material";
 import {ChevronRight, ChevronLeft, Star} from '@mui/icons-material';
 import {makeStyles} from "@mui/styles";
 
@@ -108,6 +108,8 @@ export const NewGameDetailsIndex = () => {
         GameDataService.download(game.url, game.directory, game.name);
     }
 
+    const rating = parseFloat(gameDetails["total_rating"] / 20).toFixed(1);
+
     return (
         <div className="container">
             <div className="content">
@@ -157,7 +159,7 @@ export const NewGameDetailsIndex = () => {
                                             ) }
                                         </div>
                                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                                            { "total_rating" in gameDetails && <Rating readOnly precision={0.1} value={(gameDetails["total_rating"] / 20).toFixed(1)} emptyIcon={<Star style={{ fill:"rgba(255,255,255,0.1)" }} fontSize="inherit" />}/>}
+                                            { "total_rating" in gameDetails && <Rating readOnly precision={0.1} value={Number(rating)} emptyIcon={<Star style={{ fill:"rgba(255,255,255,0.1)" }} fontSize="inherit" />}/>}
                                         </div>
                                     </div>
                                 </div>

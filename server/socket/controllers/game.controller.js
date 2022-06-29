@@ -194,7 +194,7 @@ module.exports = () => {
     }
     module.launchGame = async (gamePath, socket) => {
         const emulatorPath = path.join(appRoot, "public/emulators/pcsx2/pcsx2.exe");
-        const command = `${emulatorPath} "${gamePath}" --fullscreen`;
+        const command = `Start /B ${emulatorPath} "${gamePath}" --fullscreen`;
         try {
             exec(command, (error, stdout, stderr) => null);
         } catch (e) {

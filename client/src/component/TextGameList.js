@@ -1,22 +1,32 @@
-import {List, ListItem, ListItemText} from "@mui/material";
 import {makeStyles} from "@mui/styles";
 
 const useStyle = makeStyles({
-    item: {
+    "item": {
         color: 'grey',
         cursor: 'pointer',
-        '&:nth-child(even)':{
-            background:'#121212',
-        },
-        '&:nth-child(odd)':{
-            background:'#101010',
-        }
+        fontWeight:"bold",
+        fontSize:"medium",
+        margin:"0",
+        padding:"8px 5px",
+        background:'#131313',
+    },
+    "selectedItem":{
+        color:"white"
     }
 })
 
 export const TextGameList = (props) => {
 
-    let { games, onClick } = props;
+    let { games, offset, limit } = props;
+    const selectedGame = games[offset];
+
+    console.log(selectedGame);
+
+    const visibleGames = () => {
+        return (offset + limit > games.length)
+            ? [...games.slice(offset, games.length), ...games.slice(0, offset + limit - games.length)]
+            : games.slice(offset, offset + limit);
+    }
     const classes = useStyle();
 
     const htmlDecode = input => {
@@ -25,11 +35,10 @@ export const TextGameList = (props) => {
     }
 
     return(
-        <List sx={{ width:"100%", height: 'auto', boxSizing:'border-box' }}>
-            {games.map((game, index) => (
-                <ListItem key={index} className={classes.item} onClick={() => onClick(game)}>
-                    <ListItemText primary={htmlDecode(game.name)}/>
-                </ListItem>))}
-        </List>
+        <div style={{ width:"100%", flex:"1", flexDirection:"column", justifyContent:"space-evenly", display:"flex", boxSizing:'border-box', padding:'0 20px', margin:'0'}}>
+            {visibleGames().map((game, index) => (
+                <p key={index} className={`${(selectedGame === game) ? classes.selectedItem : ""} ${classes.item}`}>{htmlDecode(game.name)}</p>
+            ))}
+        </div>
     )
 }

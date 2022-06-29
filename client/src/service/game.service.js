@@ -8,8 +8,27 @@ class GameDataService {
         this.root = `http://127.0.0.1:8080/api/games`;
     }
 
+    //TODO use
+    async parseResponse(request) {
+        const response = await request;
+        if("type" in response.data && response.data.type === "success"){
+            return response.data.value;
+        }
+        else{
+            throw new Error(response.data.value);
+        }
+    }
+
     searchGameDetails(search){
         return axios.get(`${this.root}/details/${search}`)
+    }
+
+    getGenres(){
+        return axios.get(`${this.root}/genres`);
+    }
+
+    searchByGenre(genreList){
+        return axios.post(`${this.root}/genres`, { "genres": genreList})
     }
 
     refreshNewGameList(){

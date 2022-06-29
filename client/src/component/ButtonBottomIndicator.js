@@ -3,7 +3,7 @@ import {useEffect} from "react";
 
 const useStyle = makeStyles({
     footer: {
-        background: '#333333',
+        background: '#101010',
         color: 'white',
         justifyContent: 'flex-end',
         minHeight: '50px',

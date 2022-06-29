@@ -9,13 +9,13 @@ ReactDOM.render(
     <BrowserRouter>
         <Routes>
             <Route path="/" element={<StyleProvider/>}>
-                <Route index element={<HomeIndex/>}/>
+                <Route index element={<HomeIndex breadCrumb={["Home"]}/>}/>
                 <Route path="emulators">
                     <Route path="new">
-                        <Route index element={<NewGameListIndex/>}/>
+                        <Route index element={<NewGameListIndex breadCrumb={["Home","New Games"]}/>}/>
                         <Route path=":name" element={<NewGameDetailsIndex/>}/>
                     </Route>
-                    <Route index element={<GameListIndex/>}/>
+                    <Route index element={<GameListIndex breadCrumb={["Home","My Games"]}/>}/>
                 </Route>
                 <Route path="downloads" element={null}/>
             </Route>

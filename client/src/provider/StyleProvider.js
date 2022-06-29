@@ -12,7 +12,9 @@ const style = {
         fontFamily: "'Roboto', sans-serif",
     },
     '*': {
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        margin: 0,
+        padding:0
     },
     '.container': {
         background: '#121212',

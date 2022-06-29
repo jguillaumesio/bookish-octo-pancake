@@ -8,6 +8,26 @@ const {decimalTo32octetsBinary, binaryToDecimal} = require("../../utils");
 
 const gamesDirectory = `${appRoot}/public/games`;
 
+const authenticate = async () => {
+    const response = await axios.post(`https://id.twitch.tv/oauth2/token?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=client_credentials`)
+        .then(response => response.data);
+    return response["access_token"];
+}
+
+const _igdbRequest = async (type, body, token) => {
+    token = (!token) ? await authenticate(token) : token;
+    return await axios({
+            url: `https://api.igdb.com/v4/${type}`,
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Client-ID': process.env.CLIENT_ID,
+                'Authorization': `Bearer ${token}`,
+            },
+            data: body
+        }).then(response => response.data);
+}
+
 const _getNewGameList = async (token) => {
     try {
         const gameListPath = `${gamesDirectory}/game_list.json`;
@@ -25,18 +45,14 @@ const _getNewGameList = async (token) => {
     }
 }
 
-const authenticate = async () => {
-    const response = await axios.post(`https://id.twitch.tv/oauth2/token?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=client_credentials`)
-        .then(response => response.data);
-    return response["access_token"];
-}
-
-const _createGameDetails = (path, details) => {
+const _createGameDetails = (filePath, details) => {
     try{
-        const writer = fs.createWriteStream(path, {flags: 'w'});
+        fs.mkdirSync(path.parse(filePath).dir, { recursive: true });
+        const writer = fs.createWriteStream(filePath, {flags: 'w'});
         writer.write(JSON.stringify(details));
         return true;
     }catch(e){
+        console.log(e);
         return false;
     }
 }
@@ -53,16 +69,8 @@ const _findTag = async (id, typeId, token) => {
     const types = ["themes","genres","keywords",null,"player_perspectives"]
     if(typeId !== 3){
         try {
-            return await axios({
-                url: `https://api.igdb.com/v4/${types[typeId]}`,
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Client-ID': process.env.CLIENT_ID,
-                    'Authorization': `Bearer ${token}`,
-                },
-                data: `fields name; where id = (${id});`
-            }).then(response => response.data.map(e => {return { ...e, "type": types[typeId]}}));
+            const data = await _igdbRequest(types[typeId], `fields name; where id = (${id});`, token)
+            return data.map(e => {return { ...e, "type": types[typeId]}});
         } catch (e) {
             return [];
         }
@@ -80,19 +88,10 @@ const parseGameDetailsTag = async (tags, token) => {
     return result;
 }
 
-const _searchGameDetails = (search, token) => {
-
-    return axios({
-        url: "https://api.igdb.com/v4/games",
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Client-ID': process.env.CLIENT_ID,
-            'Authorization': `Bearer ${token}`,
-        },
-        data: `fields category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${search}"*;`
-    })
-        .then(response => response.data.map(e => {
+const _searchGameDetails = async (search, token) => {
+    try{
+        const data = await _igdbRequest("games", `fields category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${search}"*;`, token)
+        return data.map(e => {
             return {
                 ...e,
                 "cover": {"url": e?.cover?.url?.replace("t_thumb", "t_cover_big")},
@@ -100,11 +99,11 @@ const _searchGameDetails = (search, token) => {
                     return {...s, "url": s.url.replace("t_thumb", "t_original")}
                 })
             }
-        }))
-        .catch(err => {
-            console.log(err);
-            return [];
         });
+    }catch(e){
+        console.log(e);
+        return [];
+    }
 }
 
 const keepBestMatch = (matches) => {
@@ -187,6 +186,7 @@ module.exports = (app, token) => {
                 value: games
             })
         }catch(e){
+            console.log(e);
             res.send({
                 type:"error",
                 value:e
@@ -214,7 +214,9 @@ module.exports = (app, token) => {
             }
         }
         else{
-            const searchArray = search.split(/-| /).map(e => e.trim());
+            const regexDigitsOnly = /^\d+$/gm;
+            const searchArray = search.split(/-| /).map(e => e.trim()).filter(e => e.length >= 2 && !e.match(regexDigitsOnly))
+
             token = (!token) ? await authenticate(token) : token;
 
             let response = await _searchGameDetails(search, token);
@@ -245,6 +247,7 @@ module.exports = (app, token) => {
             if("involved_companies" in game){
                 game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
             }
+            console.log(path.parse(detailPath).dir);
             _createGameDetails(detailPath,game);
         }
 
@@ -289,43 +292,30 @@ module.exports = (app, token) => {
     module.getGenres = async (req,res) => {
         let result;
         try {
-            token = (!token) ? await authenticate(token) : token;
-            result = await axios({
-                url: `https://api.igdb.com/v4/genres`,
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Client-ID': process.env.CLIENT_ID,
-                    'Authorization': `Bearer ${token}`,
-                },
-                data: `fields name; sort id asc; limit 500;`
-            }).then(response => response.data);
+            result = await _igdbRequest("genres",`fields name; sort id asc; limit 500;`, token);
+            res.send({
+                type: "success",
+                value: result
+            });
         } catch (e) {
             console.log(e);
-            result = [];
+            res.send({
+                type: "error",
+                value: e
+            });
         }
-        res.send({
-            "genres": result
-        });
+
     }
 
     module.searchByGenre = async (req,res) => {
-        const { genres } = req.query;
+        const { genres } = req.body;
         const igdbGames = [];
         let tempGames = [];
         token = (!token) ? await authenticate(token) : token;
         while( igdbGames.length === 0 || tempGames.length !== 0){
-            tempGames = await axios({
-                url: "https://api.igdb.com/v4/games",
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Client-ID': process.env.CLIENT_ID,
-                    'Authorization': `Bearer ${token}`,
-                },
-                data: `fields name; where platforms = (8) & genres = (${genres.join(",")}); limit 50; offset ${igdbGames.length};`
-            })
-                .then(response => response.data.map(e => {
+            try{
+                tempGames = await _igdbRequest("games",`fields name; where platforms = (8) & genres = (${genres.join(",")}); limit 50; offset ${igdbGames.length};`, token);
+                tempGames = tempGames.map(e => {
                     return {
                         ...e,
                         "cover": {"url": e?.cover?.url?.replace("t_thumb", "t_cover_big")},
@@ -333,11 +323,11 @@ module.exports = (app, token) => {
                             return {...s, "url": s.url.replace("t_thumb", "t_original")}
                         })
                     }
-                }))
-                .catch(err => {
-                    console.log(err);
-                    tempGames = [];
                 });
+            }catch(e){
+                console.log(e);
+                tempGames = [];
+            }
             igdbGames.push(...tempGames);
         }
         const newGameList = await _getNewGameList(token);
@@ -347,15 +337,23 @@ module.exports = (app, token) => {
         }
         const result = [];
         for(let i of igdbGames){
+            let correspondingGameFromNewGameList = null;
             for(let y of newGameList.value){
-                if(stringsSimilarityPercentage(i.name, y.name) >= process.env.MATCH_PERCENTAGE_THREESOLD){
-                    result.push(y);
-                    break;
+                const similarity = stringsSimilarityPercentage(i.name, y.name)
+                if(correspondingGameFromNewGameList === null || similarity >= correspondingGameFromNewGameList.similarity){
+                    correspondingGameFromNewGameList = {game: y, similarity: similarity}
+                    if(similarity === 1){
+                        break;
+                    }
                 }
+            }
+            if(correspondingGameFromNewGameList.similarity > process.env.MATCH_PERCENTAGE_THREESOLD){
+                result.push(correspondingGameFromNewGameList.game)
             }
         }
         res.send({
-            "games": result
+            type: "success",
+            value: result
         });
     }
 
