@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {useNavigate,} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import GameDataService from "../service/game.service";
 import {TextGameList} from "../component/TextGameList";
 import * as React from "react";
@@ -56,7 +56,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
         return (isFiltered) ? filteredGames : games;
     }
 
-    const handleGenreFiltering = async () => {
+    const handleGenreFiltering = async ({genres, selectedGenreIndex, setIsFiltered, setSelectedGameIndex, setFilteredGames}) => {
         const tempGenres = genres.map(e => (e === genres[selectedGenreIndex]) ? { ...e, selected: !e.selected} : e);
         setGenres([...tempGenres]);
         if(tempGenres.findIndex(e => e.selected) !== -1){
@@ -92,12 +92,11 @@ export const NewGameListIndex = ({breadCrumb}) => {
         )
     }
 
-    const seeGameDetails = () => {
-        const game = getGames()[selectedGameIndex];
+    const seeGameDetails = ({games, selectedGameIndex}) => {
+        const game = games[selectedGameIndex];
         navigate(game.name, { state: {"game": game} });
     }
-
-    const handleIndexSelection = (setter, length, move) => {
+    const handleIndexSelection = ({setter, length, move}) => {
         const shift = (move === "down") ? 1 : -1;
         const modulo = (n, m) => ((n % m) + m) % m;
         setter(index => {
@@ -109,35 +108,19 @@ export const NewGameListIndex = ({breadCrumb}) => {
         "index": 0,
         "widget": genreContainer,
         "onTap": handleGenreFiltering,
-        "onMove": (move) => handleIndexSelection(setSelectedGenreIndex, genres.length, move)
+        "onMove": ({setSelectedGenreIndex, genres, move}) => handleIndexSelection({"setter": setSelectedGenreIndex,"length":genres.length, "move": move})
     },{
         "index": 1,
         "widget": gameContainer,
         "onTap": seeGameDetails,
-        "onMove": (move) => handleIndexSelection(setSelectedGameIndex, getGames().length, move)
+        "onMove": ({setSelectedGameIndex, games, move}) => handleIndexSelection({"setter": setSelectedGameIndex,"length":games.length, "move": move})
     }];
 
     const [selectedContainer, setSelectedContainer] = useState(containers[0]);
 
     useEffect(() => {
-        containers = [{
-            "index": 0,
-            "widget": genreContainer,
-            "onTap": handleGenreFiltering,
-            "onMove": (move) => handleIndexSelection(setSelectedGenreIndex, genres.length, move)
-        },{
-            "index": 1,
-            "widget": gameContainer,
-            "onTap": seeGameDetails,
-            "onMove": (move) => handleIndexSelection(setSelectedGameIndex, getGames().length, move)
-        }];
-        setSelectedContainer(containers[selectedContainer.index]);
         setKeys(keyEvents);
-    },[games, filteredGames, selectedGameIndex, selectedGenreIndex, genres]);
-
-    useEffect(() => {
-        setKeys(keyEvents);
-    },[selectedContainer])
+     },[games, filteredGames, selectedContainer, selectedGameIndex, selectedGenreIndex, genres]);
 
     useEffect(async () => {
         setKeys(keyEvents);
@@ -165,7 +148,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
         }
     },[]);
 
-    const handleContainerSelection = (move) => {
+    const handleContainerSelection = ({move, setSelectedContainer}) => {
         const shift = (move === "right") ? 1 : -1;
         const modulo = (n, m) => ((n % m) + m) % m;
         setSelectedContainer(actual => {
@@ -175,41 +158,35 @@ export const NewGameListIndex = ({breadCrumb}) => {
     }
 
     const keyEvents = [
-
         {
             ...buttons.bottom,
             label:"Se déplacer",
-            callback: () => {
-                selectedContainer.onMove("down");
-            }
+            args: {"move": "down", "setSelectedGameIndex": setSelectedGameIndex, "games": games, "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
+            callback: selectedContainer.onMove
         },
         {
             ...buttons.top,
             label:"Se déplacer",
-            callback: () => {
-                selectedContainer.onMove("up");
-            }
+            args: {"move": "up", "setSelectedGameIndex": setSelectedGameIndex, "games": games, "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
+            callback: selectedContainer.onMove
         },
         {
             ...buttons.right,
             label:"Se déplacer",
-            callback: () => {
-                handleContainerSelection("right");
-            }
+            args: {"move": "right", "setSelectedContainer":setSelectedContainer},
+            callback: handleContainerSelection
         },
         {
             ...buttons.left,
             label:"Se déplacer",
-            callback: () => {
-                handleContainerSelection("left");
-            }
+            args: {"move": "left", "setSelectedContainer":setSelectedContainer},
+            callback: handleContainerSelection
         },
         {
             ...buttons.cross,
             label: "Voir",
-            callback: () => {
-                selectedContainer.onTap();
-            }
+            args:{"genres": genres, "selectedGenreIndex": selectedGenreIndex, "setIsFiltered": setIsFiltered, "setSelectedGameIndex": setSelectedGameIndex, "setFilteredGames": setFilteredGames, "games": getGames(), "selectedGameIndex": selectedGameIndex},
+            callback: selectedContainer.onTap
         }, {
             ...buttons.circle,
             label: "Retour",

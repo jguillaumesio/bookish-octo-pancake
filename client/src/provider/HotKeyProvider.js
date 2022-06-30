@@ -17,11 +17,9 @@ export const HotKeyProvider = (props) => {
     const {keys, setKeys} = props;
 
     const listener = (e) => {
-        keys.find(key => key.keyboard === e.key)?.callback();
+        const element = keys.find(key => key.keyboard === e.key);
+        element?.callback(element?.args);
     }
-
-    useEffect(() => {
-    },[keys])
 
     //TODO https://developer.mozilla.org/en-US/docs/Games/Techniques/Controls_Gamepad_API
     useEffect(() => {
