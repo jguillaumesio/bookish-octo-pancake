@@ -145,6 +145,7 @@ module.exports = () => {
             "name": name,
             "state": "downloading"
         }));
+        socket.emit("downloadResponse",JSON.stringify({"type":"success","message":`${name} has started downloading !`}))
         //DOWNLOAD PARTITIONS
         try {
             let seconds = 0;

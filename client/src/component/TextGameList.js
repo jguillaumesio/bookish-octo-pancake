@@ -17,10 +17,11 @@ const useStyle = makeStyles({
 
 export const TextGameList = (props) => {
 
-    let { games, offset, limit } = props;
+    let { games, offset, limit, isContainerSelected } = props;
     const selectedGame = games[offset];
 
-    console.log(selectedGame);
+    console.log(offset);
+    console.log(games);
 
     const visibleGames = () => {
         return (offset + limit > games.length)
@@ -37,7 +38,7 @@ export const TextGameList = (props) => {
     return(
         <div style={{ width:"100%", flex:"1", flexDirection:"column", justifyContent:"space-evenly", display:"flex", boxSizing:'border-box', padding:'0 20px', margin:'0'}}>
             {visibleGames().map((game, index) => (
-                <p key={index} className={`${(selectedGame === game) ? classes.selectedItem : ""} ${classes.item}`}>{htmlDecode(game.name)}</p>
+                <p key={index} className={`${(isContainerSelected && selectedGame === game) ? classes.selectedItem : ""} ${classes.item}`}>{htmlDecode(game.name)}</p>
             ))}
         </div>
     )

@@ -36,7 +36,6 @@ const useStyle = makeStyles({
     'selectedContainer':{
         margin:"4px 4px 0 4px !important",
         border:"1px solid #485e6d",
-        boxShadow:"0 0 4px 0 #485e6d"
     }
 })
 
@@ -50,7 +49,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
     const [filteredGames,setFilteredGames] = useState([]);
     const [isFiltered, setIsFiltered] = useState(0); //-1 loading, 0 not filtered, 1 filtered
     const [genres, setGenres] = useState([]);
-    const [_, setKeys] = React.useContext(KeyContext);
+    const [setKeys] = React.useContext(KeyContext);
 
     const getGames = () => {
         return (isFiltered) ? filteredGames : games;
@@ -73,24 +72,6 @@ export const NewGameListIndex = ({breadCrumb}) => {
             setIsFiltered(0);
         }
     }
-    const genreContainer = (index, selected) => {
-        return (
-            <div key={index} className={`${(selected) ? classes.selectedContainer : ""} ${classes.genreContainer}`}>
-                {genres.map((genre, index) => <a key={index} style={{cursor:"pointer"}} className={`${(genre.selected || genre === genres[selectedGenreIndex]) ? classes.selectedFilter : ""}`}>{genre.name}</a>)}
-            </div>
-        );
-    }
-    const gameContainer = (index, selected) => {
-        return (
-            <div key={index} className={`${(selected) ? classes.selectedContainer : ""} ${classes.gameContainer}`}>
-                <div style={{ display:"flex", flex:1 }}>
-                    {isFiltered === -1
-                        ? <div style={{ display:"flex", width: "100%", height:"100%", alignItems:"center", justifyContent:"center"}}><CircularProgress/></div>
-                        : <TextGameList offset={selectedGameIndex} limit={12} games={getGames()}/>}
-                </div>
-            </div>
-        )
-    }
 
     const seeGameDetails = ({games, selectedGameIndex}) => {
         const game = games[selectedGameIndex];
@@ -106,12 +87,10 @@ export const NewGameListIndex = ({breadCrumb}) => {
 
     let containers = [{
         "index": 0,
-        "widget": genreContainer,
         "onTap": handleGenreFiltering,
         "onMove": ({setSelectedGenreIndex, genres, move}) => handleIndexSelection({"setter": setSelectedGenreIndex,"length":genres.length, "move": move})
     },{
         "index": 1,
-        "widget": gameContainer,
         "onTap": seeGameDetails,
         "onMove": ({setSelectedGameIndex, games, move}) => handleIndexSelection({"setter": setSelectedGameIndex,"length":games.length, "move": move})
     }];
@@ -146,7 +125,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
         }catch(e){
             console.log(e);
         }
-    },[]);
+    },[setKeys]);
 
     const handleContainerSelection = ({move, setSelectedContainer}) => {
         const shift = (move === "right") ? 1 : -1;
@@ -161,13 +140,13 @@ export const NewGameListIndex = ({breadCrumb}) => {
         {
             ...buttons.bottom,
             label:"Se déplacer",
-            args: {"move": "down", "setSelectedGameIndex": setSelectedGameIndex, "games": games, "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
+            args: {"move": "down", "setSelectedGameIndex": setSelectedGameIndex, "games": getGames(), "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
             callback: selectedContainer.onMove
         },
         {
             ...buttons.top,
             label:"Se déplacer",
-            args: {"move": "up", "setSelectedGameIndex": setSelectedGameIndex, "games": games, "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
+            args: {"move": "up", "setSelectedGameIndex": setSelectedGameIndex, "games": getGames(), "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
             callback: selectedContainer.onMove
         },
         {
@@ -211,9 +190,16 @@ export const NewGameListIndex = ({breadCrumb}) => {
                             <TopBar links={[]} breadCrumb={breadCrumb}/>
                         </div>
                         <div style={{ display:"flex", flexDirection:"row", flex: 1, padding:"8px 8px 0 8px"}}>
-                            {
-                                containers.map((element, index) => element.widget(index, element.index === selectedContainer.index))
-                            }
+                            <div className={`${(selectedContainer.index === 0) ? classes.selectedContainer : ""} ${classes.genreContainer}`}>
+                                {genres.map((genre, index) => <span key={index} className={`${(genre.selected || (genre === genres[selectedGenreIndex] && (selectedContainer.index === 0))) ? classes.selectedFilter : ""}`}>{genre.name}</span>)}
+                            </div>
+                            <div className={`${(selectedContainer.index === 1) ? classes.selectedContainer : ""} ${classes.gameContainer}`}>
+                                <div style={{ display:"flex", flex:1 }}>
+                                    {isFiltered === -1
+                                        ? <div style={{ display:"flex", width: "100%", height:"100%", alignItems:"center", justifyContent:"center"}}><CircularProgress/></div>
+                                        : <TextGameList offset={selectedGameIndex} isContainerSelected={(selectedContainer.index === 1)} limit={12} games={getGames()}/>}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 }

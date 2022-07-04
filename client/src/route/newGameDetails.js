@@ -1,10 +1,10 @@
 import {useEffect, useState, useContext} from "react";
-import {useLocation,} from "react-router-dom";
+import {useLocation, useNavigate,} from "react-router-dom";
 import GameDataService from "../service/game.service";
 import * as React from "react";
 import {KeyContext} from '../provider/HotKeyProvider';
 import {buttons} from "../utils/pad";
-import {Chip, CircularProgress, Rating, Dialog, DialogTitle, List, ListItem, ListItemText, Typography, IconButton} from "@mui/material";
+import {Chip, CircularProgress, Alert, Rating, Dialog, DialogTitle, List, ListItem, ListItemText, Typography, IconButton, Snackbar} from "@mui/material";
 import {ChevronRight, ChevronLeft, Star} from '@mui/icons-material';
 import {makeStyles} from "@mui/styles";
 
@@ -32,11 +32,25 @@ export const NewGameDetailsIndex = () => {
     const classes = useStyle();
     const {state} = useLocation();
     const game = state.game;
+    const navigate = useNavigate();
     const [gameDetails, setGameDetails] = useState(game);
-    const [openAvailableDownloads, setOpenAvailableDownloads] = useState(false);
+    const [openAvailableDownloads, _setOpenAvailableDownloads] = useState(0);
+    const [selectedGameDownload, setSelectedGameDownload] = useState(0);
     const [screenshots, setScreenshots] = useState([{ "index": 0, "selected": true, "offset": 0}]);
     const [galleryRef, setGalleryRef] = useState(null);
-    const [_, setKeys] = useContext(KeyContext);
+    const [snackbar,setSnackbar] = useState({"state": false, "type": null, "message":"" });
+    const [selectedContainer, setSelectedContainer] = useState(0);
+    const [setKeys] = useContext(KeyContext);
+
+    const setOpenAvailableDownloads = (state) => {
+        _setOpenAvailableDownloads(state);
+        const containerIndex = (state === 1 || state === -1) ? 1 : 0;
+        setSelectedContainer(containerIndex);
+    }
+
+    useEffect(() => {
+        setKeys(keyEvents);
+    }, [selectedContainer])
 
     useEffect(async () => {
         setKeys(keyEvents);
@@ -71,6 +85,14 @@ export const NewGameDetailsIndex = () => {
         }
     },[galleryRef]);
 
+    const handleIndexSelection = ({setter, length, move}) => {
+        const shift = (move === "down") ? 1 : -1;
+        const modulo = (n, m) => ((n % m) + m) % m;
+        setter(index => {
+            return modulo(index + shift, length)
+        });
+    }
+
     const handleMove = (move) => {
         const shift = (move === "right") ? 1 : -1;
         const modulo = (n, m) => ((n % m) + m) % m;
@@ -84,49 +106,94 @@ export const NewGameDetailsIndex = () => {
         setScreenshots(newScreenshots);
     }
 
+    const download = () => {
+        setOpenAvailableDownloads(-1);
+        const toDownload = game.games[selectedGameDownload];
+        GameDataService.download(toDownload.url, toDownload.directory, toDownload.name, (args) => {
+            setOpenAvailableDownloads(0);
+            setSnackbar({...args, "state": true});
+        });
+    }
+
+    const containers = [
+        {
+            "index": 0,
+            "onTap": ({state}) => setOpenAvailableDownloads(state),
+            "onLeave": () => navigate("/emulators/new")
+        },
+        {
+            "index": 1,
+            "onTap": download,
+            "onMove": handleIndexSelection,
+            "onLeave": ({state}) => setOpenAvailableDownloads(state)
+        }
+    ];
+
     const getSelectedIndex = () => {
         return screenshots.find(screenshot => screenshot.selected).index ?? -1;
     }
 
     const keyEvents = [
         {
+            ...buttons.top,
+            label: "Se déplacer",
+            args: {setter: setSelectedGameDownload, length: game.games.length, move: "top"},
+            callback: containers[selectedContainer].onMove ?? (() => {})
+        },{
+            ...buttons.bottom,
+            label: "Se déplacer",
+            args: {setter: setSelectedGameDownload, length: game.games.length, move: "down"},
+            callback: containers[selectedContainer].onMove ?? (() => {})
+        }, {
             ...buttons.cross,
             label: "Voir",
-            callback: () => {
-                console.log('Enter');
-            }
+            args: {"state": 1},
+            callback: containers[selectedContainer].onTap
         }, {
             ...buttons.circle,
             label: "Retour",
-            callback: () => {
-                GameDataService.launchGame("C:\\Users\\Guillaume\\Downloads\\bookish-octo-pancake\\server\\public\\games\\ps2\\Need-for-Speed-Carbon\\game.iso");
-            }
+            args: {"state": 0},
+            callback: containers[selectedContainer].onLeave
         },
     ]
-
-    const download = (game) => {
-        GameDataService.download(game.url, game.directory, game.name);
-    }
 
     const rating = parseFloat(gameDetails["total_rating"] / 20).toFixed(1);
 
     return (
         <div className="container">
+            <Snackbar open={snackbar.state} autoHideDuration={6000} onClose={() => setSnackbar({"state": false, "type": "error", "message":"" })}>
+                <div>
+                    { snackbar.state &&
+                        <Alert variant="filled" severity={snackbar.type} sx={{ width: '100%' }}>
+                            {snackbar.message}
+                        </Alert>
+                    }
+                </div>
+            </Snackbar>
             <div className="content">
-                <Dialog open={openAvailableDownloads}>
+                <Dialog open={openAvailableDownloads !== 0}>
                     <DialogTitle>Téléchargements:</DialogTitle>
-                    <List sx={{pt: 0}}>
-                        {game.games.map((element) => (
-                            <ListItem onClick={() => download(element)} key={element.rawName}>
-                                <ListItemText primary={element.rawName}/>
-                            </ListItem>
-                        ))}
-                    </List>
+                    { openAvailableDownloads === -1
+                        ? <div style={{ display:"flex", width: "100%", padding:"20px", flex:"1", flexDirection:"column", alignItems:"center", justifyContent:"center"}}>
+                            <CircularProgress/>
+                            <h1>Waiting for download to start !</h1>
+                          </div>
+                        : <List sx={{pt: 0}}>
+                            {game.games.map((element, index) => (
+                                <ListItem sx={{background:`${index === selectedGameDownload ? "#C5C5C5" : "transparent"}`}} onClick={() => download(element)} key={index}>
+                                    <ListItemText primary={element.rawName}/>
+                                </ListItem>
+                            ))}
+                        </List>
+                    }
                 </Dialog>
-                <div style={{display:'flex', alignItems:'center', color:'white', height:"80px", position: 'relative', backgroundColor: "#101010"}}>
-                    <Typography sx={{ml: 2, flex: 1, color: "#EAEAEA", fontSize:"28px"}} variant="h6" component="div">
+                <div style={{display:'flex', flexDirection:"row", justifyContent:"space-between", alignItems:'center', padding:"0 50px", color:'white', height:"80px", position: 'relative', backgroundColor: "#101010"}}>
+                    <Typography sx={{ml: 2, flex: 1, padding:"0 20px", color: "#EAEAEA", fontSize:"28px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}} variant="h5" component="div">
                         {gameDetails?.name}
                     </Typography>
+                    { "total_rating" in gameDetails &&
+                        <Rating readOnly precision={0.1} value={Number(rating)} emptyIcon={<Star style={{ fill:"rgba(255,255,255,0.1)" }} fontSize="inherit" />}/>
+                    }
                 </div>
                 {
                     (state.game === gameDetails)
@@ -151,15 +218,12 @@ export const NewGameDetailsIndex = () => {
                                     </div>
                                     <div style={{ display:"block", width:"100%"}}>
                                         <div>
-                                            { gameDetails.tags.slice(0,10).map(tag => <Chip key={tag.name} label={tag.name} sx={{ background: "#101010", color:"#fff", borderColor:"#101010"}} variant="outlined" />)}
+                                            { gameDetails.tags.slice(0,10).map(tag => <Chip key={tag.name} label={tag.name} sx={{ background: "#101010", color:"#fff", borderColor:"#101010", margin:"5px"}} variant="outlined" />)}
                                         </div>
                                         <div style={{ display:"flex", flexDirection:"row", height:"50px", margin:"10px 0",width:"100%"}}>
                                             { "involved_companies" in gameDetails && gameDetails["involved_companies"].map(object =>
                                                 ("logo" in object.company) && <img key={object.id} src={object.company.logo.url} alt={object.company.name} style={{ display:"block", margin:"0 10px",  objectFit: "contain", height: "100%", width:"auto"}}/>
                                             ) }
-                                        </div>
-                                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                                            { "total_rating" in gameDetails && <Rating readOnly precision={0.1} value={Number(rating)} emptyIcon={<Star style={{ fill:"rgba(255,255,255,0.1)" }} fontSize="inherit" />}/>}
                                         </div>
                                     </div>
                                 </div>

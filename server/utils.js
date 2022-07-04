@@ -31,6 +31,16 @@ const _compareArrayElements = (firstArray, secondArray) => {
     return firstArray.length === secondArray.length && firstArray.every(element => secondArray.includes(element));
 }
 
+const _arrayDifference = (firstArray, secondArray) => {
+    const s1 = firstArray.filter(e => e.length >= 1);
+    const s2 = secondArray.filter(e => e.length >= 1);
+    return s1.filter(element => s2.includes(element));
+}
+
+const _arraySimilarityPercentage = (s1, s2) => {
+    return _arrayDifference(s1,s2).length / s1.length;
+}
+
 exports.stringsSimilarityPercentage = (s1, s2) => {
     if( _compareArrayElements(s1.split(/-| /), s2.split(/-| /))){
         return 1.0;
@@ -45,7 +55,7 @@ exports.stringsSimilarityPercentage = (s1, s2) => {
     if (longerLength === 0) {
         return 1.0;
     }
-    return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+    return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength) * _arraySimilarityPercentage(s1.split(/-| /), s2.split(/-| /));
 }
 
 exports.replaceAll = (string, find, replace) => {

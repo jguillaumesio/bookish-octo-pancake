@@ -30,7 +30,7 @@ export const HotKeyProvider = (props) => {
     }, [keys]);
 
     return (
-        <KeyContext.Provider tabIndex="0" className={classes.root} value={[keys, setKeys]}>
+        <KeyContext.Provider tabIndex="0" className={classes.root} value={[setKeys]}>
             {props.children}
         </KeyContext.Provider>
     )
