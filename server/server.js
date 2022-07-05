@@ -31,6 +31,7 @@ app.use(function (req, res, next) {
     next();
 });
 
+let downloads = {};
 io.on("connection", (socket) => {
     console.info(`Socket ${socket.id} has connected.`);
 
@@ -38,7 +39,7 @@ io.on("connection", (socket) => {
         console.info(`Socket ${socket.id} has disconnected.`);
     });
 
-    require('./socket/events/game.event')(socket);
+    require('./socket/events/game.event')(socket, downloads);
 });
 
 server.listen(8080, function() {

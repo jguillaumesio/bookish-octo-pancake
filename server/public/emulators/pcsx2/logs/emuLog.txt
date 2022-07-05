@@ -24,9 +24,9 @@ Loading plugins from C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\pu
 	Bound  USB: USBnull.dll [USBnull Driver 20200506140834 0.7.0]
 	Bound   FW: FWnull.dll [FWnull Driver 20200506140834 0.7.0]
 	Bound DEV9: DEV9null.dll [DEV9null Driver 20200506140834 0.5.0]
+(GameDB) 9858 games on record (loaded in 348ms)
 Plugins loaded successfully.
 
-(GameDB) 9858 games on record (loaded in 343ms)
 HLE Notice: ELF does not have a path.
 
 Initializing plugins...
@@ -45,14 +45,15 @@ Opening plugins...
 	Opening PAD
 	Opening SPU2
 	Opening CDVD
-isoFile open ok: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\games\007-Nightfire\007 - Nightfire (Europe) (En,Fr,It,Nl,Sv).iso
-	Image type  = DVD
- * CDVD Disk Open: DVD, Single layer or unknown:
- * * Track 1: Data (Mode 1) (1953904 sectors)
-	Opening USB
-	Opening FW
-	Opening DEV9
+CDVDiso Error: No filename specified.
+Closing plugins...
+	Closing SPU2
+	Closing PAD
+	Closing GS
 3.x GL context successfully created
+OpenGL information. GPU: Quadro K3100M/PCIe/SSE2. Vendor: NVIDIA Corporation. Driver: NVIDIA 392.68
+INFO: GL_ARB_sparse_texture is NOT SUPPORTED
+INFO: GL_ARB_sp3.x GL context successfully created
 OpenGL information. GPU: Quadro K3100M/PCIe/SSE2. Vendor: NVIDIA Corporation. Driver: NVIDIA 392.68
 INFO: GL_ARB_sparse_texture is NOT SUPPORTED
 INFO: GL_ARB_sparse_texture2 is NOT SUPPORTED
@@ -68,175 +69,30 @@ INFO: GL_ARB_direct_state_access is available
 INFO: GL_ARB_texture_barrier is available
 INFO: GL_ARB_get_texture_sub_image is available
 
+Current Renderer: OpenGL (Hardware renderer)3.x GL context successfully created
+OpenGL information. GPU: Quadro K3100User-canceled plugin configuration after plugin initialization failure.  Plugins unloaded.
+(GameDB) Unloading...
+ GL_ARB_sparse_texture2 is NOT SUPPORTED
+INFO: GL_ARB_gpu_shader5 is available
+INFUser-canceled plugin configuration after plugin initialization failure.  Plugins unloaded.
+(GameDB) Unloading...
+ge_buffer_object is available
+INFO: GL_ARB_texture_view is available
+INFO: GL_ARB_vertex_attrib_binding is available
+INFO: GL_ARB_clear_texture is available
+INFO: GL_ARB_multi_bind is available
+INFO: GL_ARB_direct_state_access is available
+INFO: GL_ARB_texture_barrier is available
+INFO: GL_ARB_get_texture_sub_image is available
+
 Current Renderer: OpenGL (Hardware renderer)
 Available VRAM/RAM:3840MB for textures
-McdSlot 0 [File]: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\memcards\Mcd001.ps2
 GSdx Lookup CRC:0
 GSdx Lookup CRC:0
-McdSlot 1 [File]: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\memcards\Mcd002.ps2
-Plugins opened successfully.
-EE/iR5900-32 Recompiler Reset
-	Bios Found: Europe  v02.20(10/02/2006)  Console
-	BIOS rom1 module not found, skipping...
-	BIOS rom2 module not found, skipping...
-	BIOS erom module not found, skipping...
-# Initialize memory (rev:3.70, ctm:196Mhz, cpuclk:147Mhz detected)
-
-PlayStation 2 ======== Hard reset boot
- ROMGEN=2006-0210, IOP info (CPUID=1f, CACH_CONFIG=14000200, 2MB, IOP mode)
- <20060210-142424,ROMconf,PS20220WC20060210.bin:11824>
-# Total accessable memory size: 32 MB (B:2:8:0) (370:2:7c30)
-# TLB spad=0 kernel=1:12 default=13:30 extended=31:38
-# Initialize Start.
-# Initialize GS ...
-# Initialize INTC ...
-# Initialize TIMER ...
-# Initialize DMAC ...
-# Initialize VU1 ...
-# Initialize VIF1 ...
-# Initialize GIF ...
-# Initialize VU0 ...
-# Initialize VIF0 ...
-# Initialize IPU ...
-# Initialize FPU ...
-# Initialize User Memory ...
-# Initialize Scratch Pad ...
-# Initialize Done.
-
-EE DECI2 Manager version 0.06 Apr  7 2005 21:09:14
-  CPUID=2e20, BoardID=0, ROMGEN=2006-0210, 32M
-
-Patches: No CRC found, using 00000000 instead.
-(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.58;1
-(SYSTEM.CNF) Software version = 1.02
-(SYSTEM.CNF) Disc region type = PAL
-ELF (cdrom0:\SLES_512.58;1) Game CRC = 0x5B86BB62, EntryPoint = 0x00A00008
-(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.58;1
-(SYSTEM.CNF) Software version = 1.02
-(SYSTEM.CNF) Disc region type = PAL
-
-IOP Realtime Kernel Ver.0.9.1
-    Copyright 1999 (C) Sony Computer Entertainment Inc. 
-Reboot service module.(99/11/10)
-cdvd driver module version 0.1.1 (C)SCEI
-Load File service.(99/11/05)
-Multi Threaded Fileio module.(99/11/15) 
-iop heap service (99/11/03)
-loadelf: fname rom0:OSDSYS secname all
-loadelf version 3.30
-Input ELF format filename = rom0:OSDSYS
-0 00100000 00058a48 ......
-Loaded, rom0:OSDSYS
-start address 0x100008
-gp address 00000000
-# Restart Without Memory Clear.
-# Initialize GS ...
-# Initialize INTC ...
-# Initialize TIMER ...
-# Initialize DMAC ...
-# Initialize VU1 ...
-# Initialize VIF1 ...
-# Initialize GIF ...
-# Initialize VU0 ...
-# Initialize VIF0 ...
-# Initialize IPU ...
-# Initialize FPU ...
-# Initialize Scratch Pad ...
-# Restart Without Memory Clear Done.
-LilyPad: Warning! No controls are bound to a currently attached device!
-Please attach a controller that has been setup for use with LilyPad or go to the Plugin settings and setup new controls.
-# Restart Without Memory Clear.
-# Initialize GS ...
-# Initialize INTC ...
-# Initialize TIMER ...
-# Initialize DMAC ...
-# Initialize VU1 ...
-# Initialize VIF1 ...
-# Initialize GIF ...
-# Initialize VU0 ...
-# Initialize VIF0 ...
-# Initialize IPU ...
-# Initialize FPU ...
-# Initialize Scratch Pad ...
-# Restart Without Memory Clear Done.
-Get Reboot Request From EE
-ROM directory not found
-
-PlayStation 2 ======== Update rebooting..
-ROM directory not found
-
-PlayStation 2 ======== Update reboot complete
-cdvdman Init
-rmreset start
-rmreset end
-clearspu: completed
-Pad Driver for OSD (2000/12/05 18:05) 392, 128
-
-IOP Realtime Kernel Ver.0.9.1
-    Copyright 1999 (C) Sony Computer Entertainment Inc. 
-Reboot service module.(99/11/10)
-cdvd driver module version 0.1.1 (C)SCEI
-Load File service.(99/11/05)
-Multi Threaded Fileio module.(99/11/15) 
-iop heap service (99/11/03)
-read/write allocate memory 4000
-open name rom0:OSDVER flag 1 data 4aa78
-open fd = 2
-open name rom0:ROMVER flag 1 data 4aa78
-open fd = 2
-open name rom0:XDEV9 flag 1 data 4aa78
-open fd = 2
-loadmodule: fname rom0:XDEV9 args 0 arg 
-dev9: unknown dev9 hardware.
-loadmodule: id 32, ret 1
-loadmodule: fname rom0:XDEV9SERV args 0 arg 
-loadmodule: id -200, ret 1
-open name rom0:ROMVER flag 1 data 4aa78
-open fd = 2
-open name rom0:FONTM flag 1 data 4aa78
-open fd = 2
-open name rom0:FNTIMAGE flag 1 data 4aa78
-open fd = 2
-open name rom0:SNDIMAGE flag 1 data 4aa78
-open fd = 2
-open name rom0:TEXIMAGE flag 1 data 4aa78
-open fd = 2
-open name rom0:ICOIMAGE flag 1 data 4aa78
-open fd = 2
-open name rom0:TZLIST flag 1 data 4aa78
-open fd = 2
-_spu_rev_offsetaddr 1f9021
-### addr = 1034255  size = 28640
-_spu_rev_offsetaddr 1d9021
-### addr = 968719  size = 28640
-get val add 3c0 type 2 ret 1ff000
-get val add 1ff000 type 2 ret 0
-open name rom0:PS1ID flag 1 data 4aa78
-open fd = 2
-open name rom0:PS1VERE flag 1 data 4aa78
-open fd = 2
-open name rom1:DVDID flag 1 data 4aa78
-open fd = -6
-(UpdateVSyncRate) Mode Changed to DVD PAL.
-(UpdateVSyncRate) FPS Limit Changed : 50,00 fps
-(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.58;1
-(SYSTEM.CNF) Software version = 1.02
-(SYSTEM.CNF) Disc region type = PAL
-(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.58;1
-(SYSTEM.CNF) Software version = 1.02
-(SYSTEM.CNF) Disc region type = PAL
-open name cdrom0:¥SYSTEM.CNF;1 flag 5 data 4aa78
-open fd = 2
-Closing plugins...
-	Closing DEV9
-	Closing FW
-	Closing USB
-	Closing CDVD
-	Closing SPU2
-	Closing PAD
-	Closing GS
-Delete 0 Shaders, 69 Programs, 28 Pipelines
+Delete 0 Shaders, 34 Programs, 28 Pipelines
 Plugins closed successfully.
 Shutting down plugins...
 Plugins shutdown successfully.
+(pxActionEvent) CDVD plugin failed to open!(thread:EE Core)
+User-canceled plugin configuration after plugin initialization failure.  Plugins unloaded.
 (GameDB) Unloading...

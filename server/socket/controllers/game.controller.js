@@ -32,7 +32,7 @@ const generateDownloadChunksHeaders = (total, cookie, directory) => {
     return threads;
 }
 
-const downloadChunk = async (url, thread) => {
+const downloadChunk = async (url, thread, downloads, directory, index) => {
     let writer = fs.createWriteStream(thread.path);
     let tracking;
     const response = await axios({
@@ -43,11 +43,14 @@ const downloadChunk = async (url, thread) => {
     }).then(response => response);
     return new Promise((resolve, reject) => {
         tracking = setInterval(() => {
+            downloads[directory]["downloadedChunksSize"][index] = writer.bytesWritten;
+            /*
             const newPercentage = parseInt(writer.bytesWritten / thread.total * 100).toFixed(0);
             if (thread.percentage !== newPercentage) {
                 thread.percentage = newPercentage;
                 console.log(`${thread.path}: ${newPercentage}%`);
             }
+             */
         }, 1000);
         response.data.pipe(writer);
         let error = null;
@@ -123,10 +126,29 @@ const unZip = async (file, output) => {
     });
 }
 
+const _getGameDetails = gameDirectory => {
+    const detailPath = `${gameDirectory}/details.json`;
+    if(fs.existsSync(detailPath)){
+        try{
+            const details = fs.readFileSync(detailPath, "utf-8");
+            return JSON.parse(details);
+        }catch(e){
+            console.log(e);
+            return {};
+        }
+    }
+}
+
 module.exports = () => {
     const module = {};
 
-    module.download = async (url, directory, name, socket) => {
+    module.downloadList = async (socket, downloads) => {
+        setInterval(() => {
+            socket.emit("downloadList", JSON.stringify(Object.values(downloads)));
+        }, 1000);
+    }
+
+    module.download = async (url, directory, name, socket, downloads) => {
         const cookie = await connectToRepository();
         directory = (`${gamesDirectory}/${directory}`).replace(/\\/g, '/');
         if (!fs.existsSync(directory)) {
@@ -145,17 +167,27 @@ module.exports = () => {
             "name": name,
             "state": "downloading"
         }));
-        socket.emit("downloadResponse",JSON.stringify({"type":"success","message":`${name} has started downloading !`}))
+        socket.emit("downloadResponse",JSON.stringify({"type":"success","message":`${name} has started downloading !`}));
+        const details = _getGameDetails(directory);
+
         //DOWNLOAD PARTITIONS
         try {
             let seconds = 0;
+            let downloadedSize = 0;
+            downloads[directory] = {
+                "totalSize": parseInt(total), //byte size
+                "downloadedChunksSize": threads.map(e => 0),
+                "name": details.name,
+                "time": seconds,
+                "picture": details.cover ?? null,
+            };
             const timer = setInterval(() => {
-                seconds++;
+                downloads[directory]["time"] += 1;
             }, 1000);
-
-            await Promise.all(threads.map(thread => downloadChunk(url, thread)));
+            await Promise.all(threads.map((thread, index) => downloadChunk(url, thread, downloads, directory, index)));
+            downloads[directory]["downloadedChunksSize"] = downloads[directory]["totalSize"];
             clearInterval(timer);
-            console.log(`${total / (1024 * 1024) / seconds}Mo/s en moyenne`);
+            console.log(`${total / (1024 * 1024) / downloads[directory]["time"]}Mo/s en moyenne`);
         } catch (e) {
             console.log(`Error while merging ${directory}/game.zip`);
             console.log(e);
@@ -192,6 +224,8 @@ module.exports = () => {
         } catch (e) {
             console.log(e);
         }
+
+        delete downloads[directory];
     }
     module.launchGame = async (gamePath, socket) => {
         const emulatorPath = path.join(appRoot, "public/emulators/pcsx2/pcsx2.exe");
