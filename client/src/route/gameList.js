@@ -13,6 +13,7 @@ export const GameListIndex = () => {
                 let tempGames = response.data.value.map((game, i) => {
                     return {...game, index: i}
                 })
+                console.log(tempGames);
                 setGames(tempGames);
             }
             else{
@@ -23,9 +24,8 @@ export const GameListIndex = () => {
 
     return (
         <div className="container" >
-            <div className="content" style={{ alignItems:'center'}}>
+            <div className="content" style={{ alignItems:'center', justifyContent:'center'}}>
                 <GameCaroussel onEnter={() => console.log('toLaunch')} onBackspace={()=> console.log('back')} games={games}/>
-                <ButtonBottomIndicator/>
             </div>
         </div>
     )

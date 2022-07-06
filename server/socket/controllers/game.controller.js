@@ -144,7 +144,9 @@ module.exports = () => {
 
     module.downloadList = async (socket, downloads) => {
         setInterval(() => {
-            socket.emit("downloadList", JSON.stringify(Object.values(downloads)));
+            const values = Object.values(downloads) ?? [];
+            console.log(values);
+            socket.emit("downloadList", JSON.stringify(values));
         }, 1000);
     }
 
@@ -185,7 +187,6 @@ module.exports = () => {
                 downloads[directory]["time"] += 1;
             }, 1000);
             await Promise.all(threads.map((thread, index) => downloadChunk(url, thread, downloads, directory, index)));
-            downloads[directory]["downloadedChunksSize"] = downloads[directory]["totalSize"];
             clearInterval(timer);
             console.log(`${total / (1024 * 1024) / downloads[directory]["time"]}Mo/s en moyenne`);
         } catch (e) {

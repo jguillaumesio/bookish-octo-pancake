@@ -159,6 +159,11 @@ export const NewGameDetailsIndex = () => {
 
     const rating = parseFloat(gameDetails["total_rating"] / 20).toFixed(1);
 
+    const htmlDecode = input => {
+        const doc = new DOMParser().parseFromString(input, "text/html");
+        return doc.documentElement.textContent;
+    }
+
     return (
         <div className="container">
             <Snackbar open={snackbar.state} autoHideDuration={6000} onClose={() => setSnackbar({"state": false, "type": "error", "message":"" })}>
@@ -189,7 +194,7 @@ export const NewGameDetailsIndex = () => {
                 </Dialog>
                 <div style={{display:'flex', flexDirection:"row", justifyContent:"space-between", alignItems:'center', padding:"0 50px", color:'white', height:"80px", position: 'relative', backgroundColor: "#101010"}}>
                     <Typography sx={{ml: 2, flex: 1, padding:"0 20px", color: "#EAEAEA", fontSize:"28px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}} variant="h5" component="div">
-                        {gameDetails?.name}
+                        {htmlDecode(gameDetails?.name)}
                     </Typography>
                     { "total_rating" in gameDetails &&
                         <Rating readOnly precision={0.1} value={Number(rating)} emptyIcon={<Star style={{ fill:"rgba(255,255,255,0.1)" }} fontSize="inherit" />}/>

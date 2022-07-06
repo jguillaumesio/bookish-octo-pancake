@@ -1,7 +1,7 @@
 # bookish-octo-pancake
 
 # TODO
-- download page
+
 - remove websocket for pushEvents  
 - catch response (parse type & value) in client
 - do homePage

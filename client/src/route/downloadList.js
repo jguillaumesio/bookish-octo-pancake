@@ -71,8 +71,8 @@ export const DownloadListIndex = ({breadCrumb}) => {
                 </div>
                 <div className={classes.container}>
                     <div style={{ width:"100%", flex:"1", flexDirection:"column", justifyContent:"flex-start", display:"flex", boxSizing:'border-box', margin:'0'}}>
-                        {games.map(e =>
-                            <div style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
+                        {games.map((e, index) =>
+                            <div key={index} style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
                                 <div style={{ height:'100%', display:'flex', flexDirection:'row', alignItems:'center'}}>
                                     <img src={e.picture.url} alt={e.name} style={{ maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
                                     <h3 style={{ padding:'20px' }}>{e.name}</h3>

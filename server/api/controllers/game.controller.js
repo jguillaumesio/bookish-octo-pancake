@@ -265,9 +265,12 @@ module.exports = (app, token) => {
                 files = fs.readdirSync(gamesDirectory);
                 files.forEach(folder => {
                     if (fs.lstatSync(`${gamesDirectory}/${folder}`).isDirectory()) {
-                        let informations = JSON.parse(fs.readFileSync(`${gamesDirectory}/${folder}/${process.env.INFORMATIONS_FILENAME}`,"utf-8"));
-                        if ("state" in informations && informations.state === "downloaded") {
-                            games.push(informations);
+                        if(fs.existsSync(`${gamesDirectory}/${folder}/${process.env.INFORMATIONS_FILENAME}`)){
+                            let informations = JSON.parse(fs.readFileSync(`${gamesDirectory}/${folder}/${process.env.INFORMATIONS_FILENAME}`,"utf-8"));
+                            if ("state" in informations && informations.state === "downloaded") {
+                                let details = JSON.parse(fs.readFileSync(`${gamesDirectory}/${folder}/details.json`,"utf-8"));
+                                games.push(details);
+                            }
                         }
                     }
                 });

@@ -58,7 +58,7 @@ class GameDataService {
         this.socket = this.socket ?? socketIOClient('http://127.0.0.1:8080',{reconnection: false});
         this.socket.emit('downloadList', {});
         this.socket.on('downloadList',(JSONString) => {
-            const args = JSON.parse(JSONString);
+            let args = JSON.parse(JSONString);
             setState(args);
         });
         this.socket.on('disconnect',() => this.socket = null);
