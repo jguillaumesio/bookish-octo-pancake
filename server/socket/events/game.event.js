@@ -7,6 +7,9 @@ module.exports = (socket, downloads) => {
     socket.on('download', async ({url, directory, name}) => {
         await games.download(url, directory, name, socket, downloads);
     });
+    socket.on('restartDownload', async ({url, directory, name}) => {
+        await games.restartDownload(url, directory, name, socket, downloads);
+    });
     socket.on('downloadList', async ({}) => {
         await games.downloadList(socket, downloads);
     });

@@ -25,7 +25,9 @@ const _igdbRequest = async (type, body, token) => {
                 'Authorization': `Bearer ${token}`,
             },
             data: body
-        }).then(response => response.data);
+        }).then(response => {
+            return response.data;
+    });
 }
 
 const _getNewGameList = async (token) => {
@@ -69,7 +71,7 @@ const _findTag = async (id, typeId, token) => {
     const types = ["themes","genres","keywords",null,"player_perspectives"]
     if(typeId !== 3){
         try {
-            const data = await _igdbRequest(types[typeId], `fields name; where id = (${id});`, token)
+            const data = await _igdbRequest(types[typeId], `fields name; where id = (${id});`, token);
             return data.map(e => {return { ...e, "type": types[typeId]}});
         } catch (e) {
             return [];
@@ -158,12 +160,13 @@ const parseDirectory = (name) => {
     const regex = /(\(.*?\)|(.zip))/gm;
     const regex1 = /[^a-zA-Z0-9 :]/g;
     const regex2 = /(\s+)/gm;
-    return name.replace(regex, "").replace(regex1, "").trim().replace(regex2, "-");
+    return name.replace(regex, "").replace(regex1, "_").trim().replace(regex2, "-");
 }
 
 const parseName = (name) => {
     const regex = /(\(.*?\)|(.zip))/gm;
-    name = name.replace(regex, "");
+    const regex2 = / - /gm;
+    name = name.replace(regex, "").replace(regex2, "-");
     return name.trim();
 }
 
@@ -201,21 +204,29 @@ module.exports = (app, token) => {
     }
 
     module.searchGameDetails = async (req, res) => {
-        const {search} = req.params;
+        const {search, directoryName} = req.body;
 
         let game = {};
-        const detailPath = `${gamesDirectory}/${parseDirectory(search)}/details.json`;
+        const detailPath = `${gamesDirectory}/${directoryName}/details.json`;
+        const informationFilePath = `${gamesDirectory}/${directoryName}/${process.env.INFORMATIONS_FILENAME}`;
         if(fs.existsSync(detailPath)){
             try{
                 const details = fs.readFileSync(detailPath, "utf-8");
-                game = JSON.parse(details);
+                game = {
+                    ...JSON.parse(details),
+                    "state": null
+                };
+                if(fs.existsSync(informationFilePath)){
+                    const temp = JSON.parse(fs.readFileSync(informationFilePath, "utf-8"));
+                    game.state = temp.state;
+                }
             }catch(e){
                 console.log(e);
             }
         }
         else{
             const regexDigitsOnly = /^\d+$/gm;
-            const searchArray = search.split(/-| /).map(e => e.trim()).filter(e => e.length >= 2 && !e.match(regexDigitsOnly))
+            const searchArray = search.split(/-| |:/).map(e => e.trim()).filter(e => e.length >= 2 && !e.match(regexDigitsOnly))
 
             token = (!token) ? await authenticate(token) : token;
 
@@ -224,8 +235,36 @@ module.exports = (app, token) => {
                 ...game,
                 matchPercentage: stringsSimilarityPercentage(game.name, search)
             }});
-            if (response.length === 0 && searchArray !== 0) {
-                response = [];
+            if(new RegExp(/[0-9]/g).test(search)){
+                let result = await _searchGameDetails(search.replace(/[0-9]/g, ""), token);
+                response.push(...result.map(game => { return{
+                    ...game,
+                    matchPercentage: stringsSimilarityPercentage(game.name, search)
+                }}));
+            }
+            if (search.includes("-")){
+                const searchArrayByTiret = search.split("-")
+                for (let i of searchArrayByTiret) {
+                    let result = await _searchGameDetails(i, token);
+                    result = result.map(game => { return{
+                        ...game,
+                        matchPercentage: stringsSimilarityPercentage(game.name, search)
+                    }});
+                    response.push(...result);
+                    if(result.findIndex(game => game.matchPercentage === 1) !== -1){
+                        break;
+                    }
+                    i++;
+                }
+            }
+            if (search.includes("-")){
+                let result = await _searchGameDetails(search.replace(/-/,": "), token);
+                response.push(...result.map(game => { return{
+                    ...game,
+                    matchPercentage: stringsSimilarityPercentage(game.name, search)
+                }}));
+            }
+            if (searchArray !== 0) {
                 for (let i of searchArray) {
                     let result = await _searchGameDetails(i, token);
                     result = result.map(game => { return{
@@ -247,7 +286,6 @@ module.exports = (app, token) => {
             if("involved_companies" in game){
                 game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
             }
-            console.log(path.parse(detailPath).dir);
             _createGameDetails(detailPath,game);
         }
 
@@ -294,18 +332,30 @@ module.exports = (app, token) => {
 
     module.getGenres = async (req,res) => {
         let result;
-        try {
-            result = await _igdbRequest("genres",`fields name; sort id asc; limit 500;`, token);
+        const genresPath = `${gamesDirectory}/genres.json`;
+        if(fs.existsSync(genresPath)){
+            result = JSON.parse(fs.readFileSync(genresPath, "utf-8"));
             res.send({
                 type: "success",
                 value: result
-            });
-        } catch (e) {
-            console.log(e);
-            res.send({
-                type: "error",
-                value: e
-            });
+            })
+        }
+        else{
+            try {
+                result = await _igdbRequest("genres",`fields name; sort id asc; limit 500;`, token);
+                const writer = fs.createWriteStream(genresPath, {flags: 'w'});
+                writer.write(JSON.stringify(result));
+                res.send({
+                    type: "success",
+                    value: result
+                });
+            } catch (e) {
+                console.log(e);
+                res.send({
+                    type: "error",
+                    value: e
+                });
+            }
         }
 
     }
@@ -342,7 +392,7 @@ module.exports = (app, token) => {
         for(let i of igdbGames){
             let correspondingGameFromNewGameList = null;
             for(let y of newGameList.value){
-                const similarity = stringsSimilarityPercentage(i.name, y.name)
+                const similarity = stringsSimilarityPercentage(i.name, y.name);
                 if(correspondingGameFromNewGameList === null || similarity >= correspondingGameFromNewGameList.similarity){
                     correspondingGameFromNewGameList = {game: y, similarity: similarity}
                     if(similarity === 1){

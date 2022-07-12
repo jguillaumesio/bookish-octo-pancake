@@ -19,8 +19,8 @@ class GameDataService {
         }
     }
 
-    searchGameDetails(search){
-        return axios.get(`${this.root}/details/${search}`)
+    searchGameDetails(search, directory){
+        return axios.post(`${this.root}/details`,{"search": search, "directoryName":directory})
     }
 
     getGenres(){
@@ -46,8 +46,17 @@ class GameDataService {
     download(url, directory, name, callbackOnFirstResponse){
         this.socket = this.socket ?? socketIOClient('http://127.0.0.1:8080',{reconnection: false});
         this.socket.emit('download', {"url":url, "directory":directory, "name":name});
-        this.socket.on('download',({percentage, name}) => console.log(`${name}: ${percentage}%`));
         this.socket.on('downloadResponse', (JSONString) => {
+            const args = JSON.parse(JSONString);
+            callbackOnFirstResponse(args);
+        });
+        this.socket.on('disconnect',() => this.socket = null);
+    }
+
+    restartDownload(url, directory, name, callbackOnFirstResponse){
+        this.socket = this.socket ?? socketIOClient('http://127.0.0.1:8080',{reconnection: false});
+        this.socket.emit('restartDownload', {"url":"https://archive.org/download/PS2_COLLECTION_PART1/10%20Pin%20-%20Champions%20Alley%20%28Europe%29%20%28En%2CFr%2CDe%2CEs%2CIt%2CNl%29.zip", "directory":"C:/Users/Guillaume/Downloads/bookish-octo-pancake/server/public/games/10-Pin-_-Champions-Alley", "name":"187 - Ride or die"});
+        this.socket.on('restartDownloadResponse', (JSONString) => {
             const args = JSON.parse(JSONString);
             callbackOnFirstResponse(args);
         });
@@ -65,7 +74,6 @@ class GameDataService {
     }
 
     launchGame(gamePath){
-        console.log(gamePath);
         this.socket = this.socket ?? socketIOClient('http://127.0.0.1:8080',{reconnection: false});
         this.socket.emit('launchGame', {"gamePath": gamePath});
         this.socket.on('disconnect',() => this.socket = null);

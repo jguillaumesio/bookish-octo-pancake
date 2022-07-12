@@ -26,7 +26,8 @@ export const DownloadListIndex = ({breadCrumb}) => {
 
     const classes = useStyle();
     const navigate = useNavigate();
-    const [games, setGames] = useState([]);
+    const [games, _setGames] = useState([]);
+    const [selectedGameIndex, setSelectedGameIndex] = useState(null);
     const [setKeys] = React.useContext(KeyContext);
 
     const handleIndexSelection = ({setter, length, move}) => {
@@ -37,29 +38,45 @@ export const DownloadListIndex = ({breadCrumb}) => {
         });
     }
 
+    const setGames = newGames => {
+        if(selectedGameIndex === null && newGames.length > 0){
+            setSelectedGameIndex(0);
+        }
+        else if(selectedGameIndex > newGames.length){
+            let index = newGames.findIndex(g => g.name === games[selectedGameIndex]);
+            index = (index === -1) ? 0 : index;
+            setSelectedGameIndex(index);
+        }
+        _setGames(newGames);
+    }
+
     useEffect(() => {
         setKeys(keyEvents);
         GameService.downloadList(setGames);
     },[]);
 
+    useEffect(() => {
+        setKeys(keyEvents);
+    },[games, selectedGameIndex])
+
     const keyEvents = [
         {
             ...buttons.bottom,
             label:"Se déplacer",
-            args: {"move": "down"},
-            callback: () => {}
+            args: {"move": "down", "setter": setSelectedGameIndex, "length": games.length},
+            callback: handleIndexSelection
         },
         {
             ...buttons.top,
             label:"Se déplacer",
-            args: {"move": "up"},
-            callback: () => {}
+            args: {"move": "up", "setter": setSelectedGameIndex, "length": games.length},
+            callback: handleIndexSelection
         },
         {
             ...buttons.cross,
             label: "Voir",
-            args:{},
-            callback: () => {}
+            args:{"url":"","directory":"", "name":""},
+            callback: (url, directory, name) => GameService.restartDownload(url, directory, name, console.log)
         }
     ]
 
@@ -74,10 +91,10 @@ export const DownloadListIndex = ({breadCrumb}) => {
                         {games.map((e, index) =>
                             <div key={index} style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
                                 <div style={{ height:'100%', display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                    <img src={e.picture.url} alt={e.name} style={{ maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
+                                    <img src={e.picture.url} alt={e.name} style={{ border:`${(index === selectedGameIndex) ? "2px solid white" : "none"}`, maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
                                     <h3 style={{ padding:'20px' }}>{e.name}</h3>
                                 </div>
-                                <h2 style={{ padding:'10px' }}>{parseFloat(e.downloadedChunksSize.reduce((a,b) => a+b,0)/e.totalSize).toFixed(2)*100}%</h2>
+                                <h2 style={{ padding:'10px' }}>{e.percentage}%</h2>
                             </div>
                         )}
                     </div>

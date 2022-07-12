@@ -4,8 +4,8 @@ import GameDataService from "../service/game.service";
 import * as React from "react";
 import {KeyContext} from '../provider/HotKeyProvider';
 import {buttons} from "../utils/pad";
-import {Chip, CircularProgress, Alert, Rating, Dialog, DialogTitle, List, ListItem, ListItemText, Typography, IconButton, Snackbar} from "@mui/material";
-import {ChevronRight, ChevronLeft, Star} from '@mui/icons-material';
+import {Chip, CircularProgress, Alert, Rating, Dialog, DialogTitle, List, ListItem, ListItemText, Typography, Snackbar} from "@mui/material";
+import {Star} from '@mui/icons-material';
 import {makeStyles} from "@mui/styles";
 
 const useStyle = makeStyles({
@@ -43,19 +43,24 @@ export const NewGameDetailsIndex = () => {
     const [setKeys] = useContext(KeyContext);
 
     const setOpenAvailableDownloads = (state) => {
-        _setOpenAvailableDownloads(state);
-        const containerIndex = (state === 1 || state === -1) ? 1 : 0;
-        setSelectedContainer(containerIndex);
+        if(gameDetails.state === "downloaded"){
+            setSnackbar({"type":"error", "message":"Le jeu est déjà dans la bibliothèque !", "state": true});
+        }
+        else{
+            _setOpenAvailableDownloads(state);
+            const containerIndex = (state === 1 || state === -1) ? 1 : 0;
+            setSelectedContainer(containerIndex);
+        }
     }
 
     useEffect(() => {
         setKeys(keyEvents);
-    }, [selectedContainer])
+    }, [selectedContainer, screenshots]);
 
     useEffect(async () => {
         setKeys(keyEvents);
         try{
-            const response = await GameDataService.searchGameDetails(game.name).then(response => response.data);
+            const response = await GameDataService.searchGameDetails(game.name, game.games[0].directory).then(response => response.data);
             if("type" in response && response.type === "success"){
                 setGameDetails({...game, ...response.value});
             }
@@ -93,8 +98,8 @@ export const NewGameDetailsIndex = () => {
         });
     }
 
-    const handleMove = (move) => {
-        const shift = (move === "right") ? 1 : -1;
+    const handleMove = ({move}) => {
+        const shift = (move === "right") ? -1 : 1;
         const modulo = (n, m) => ((n % m) + m) % m;
         const newIndex = modulo(getSelectedIndex()+shift, screenshots.length);
         const newScreenshots = screenshots.map(e => {
@@ -107,8 +112,8 @@ export const NewGameDetailsIndex = () => {
     }
 
     const download = () => {
-        setOpenAvailableDownloads(-1);
         const toDownload = game.games[selectedGameDownload];
+        setOpenAvailableDownloads(-1);
         GameDataService.download(toDownload.url, toDownload.directory, toDownload.name, (args) => {
             setOpenAvailableDownloads(0);
             setSnackbar({...args, "state": true});
@@ -134,6 +139,18 @@ export const NewGameDetailsIndex = () => {
     }
 
     const keyEvents = [
+        {
+            ...buttons.right,
+            label: "Galerie d'image",
+            args: {"move": "right"},
+            callback: handleMove
+        },
+        {
+            ...buttons.left,
+            label: "Galerie d'image",
+            args: {"move": "left"},
+            callback: handleMove
+        },
         {
             ...buttons.top,
             label: "Se déplacer",
@@ -218,7 +235,7 @@ export const NewGameDetailsIndex = () => {
                             <div style={{display: "flex", flexDirection: "row", alignItems: "center", height:"50%", minHeight:"50%",maxHeight:"50%"}}>
                                 <img src={gameDetails?.cover?.url} alt="cover" style={{maxHeight:"100%", width: "auto", height: "100%", display: "block", margin: "0 auto"}}/>
                                 <div style={{ padding: "0 20px", width: "60%", display: "flex", flexDirection:"column", alignItems:"flex-start", justifyContent:"space-between", alignSelf:"stretch"}}>
-                                    <div style={{ display:"flex", alignItems:"center", width:"100%", whiteSpace:"pre-wrap", boxSizing:"border-box", marginBottom:"10px", overflow:"hidden", textOverflow: "ellipsis", color: "#EAEAEA", lineHeight: "1.6"}}>
+                                    <div style={{ display:"flex", width:"100%", boxSizing:"border-box", marginBottom:"10px", overflow:"hidden", color: "#EAEAEA", lineHeight: "1.6"}}>
                                         {gameDetails?.summary}
                                     </div>
                                     <div style={{ display:"block", width:"100%"}}>
@@ -235,9 +252,6 @@ export const NewGameDetailsIndex = () => {
                             </div>
                             {   "screenshots" in gameDetails && gameDetails.screenshots.length > 0 &&
                                 <div ref={(el) => setGalleryRef(el)} style={{ position:"relative", width:"100%", overflow:"hidden", minHeight:"50%", maxHeight:"50%", height:"50%", padding:'20px 0'}}>
-                                    <IconButton onClick={() => handleMove("left")} color="primary" component="span" style={{ position:"absolute", left:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
-                                        <ChevronLeft />
-                                    </IconButton>
                                     <div style={{ transform:`translateX(${screenshots[getSelectedIndex()].offset}px)`, display:"flex", flexDirection:"row", height:"100%"}}>
                                         { "screenshots" in gameDetails && gameDetails.screenshots.length > 0 &&
                                             gameDetails?.screenshots?.map((image, index) => (
@@ -247,9 +261,6 @@ export const NewGameDetailsIndex = () => {
                                             ))
                                         }
                                     </div>
-                                    <IconButton onClick={() => handleMove("right")} color="primary" component="span" style={{ position:"absolute", right:0, top:"calc(50% - 20px)", display:"flex", zIndex:"2", height:"40px", width:"40px"}}>
-                                        <ChevronRight />
-                                    </IconButton>
                                 </div>
                             }
                         </div>

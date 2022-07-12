@@ -17,23 +17,24 @@ const generateDownloadChunksHeaders = (total, cookie, directory) => {
     for (let i = 0; i < numberOfThreads; i++) {
         const end = (i === numberOfThreads - 1) ? total : start + bytesPartitionSize;
         threads.push({
-            percentage: 0,
-            weight: end - start,
-            path: `${directory}/game${i + 1}.zip`,
-            index: i + 1,
-            headers: {
+            "path": `${directory}/game${i + 1}.zip`,
+            "index": i + 1,
+            "start": start,
+            "end": end,
+            "headers": {
                 "cookie": cookie,
                 "Range": `bytes=${start}-${end}`
             },
-            total: end - start
+            "total": end - start
         });
+        console.log(`${i}: ${start} to ${end}`);
         start = end + 1;
     }
     return threads;
 }
 
 const downloadChunk = async (url, thread, downloads, directory, index) => {
-    let writer = fs.createWriteStream(thread.path);
+    let writer = fs.createWriteStream(thread.path, {"flags": "a"});
     let tracking;
     const response = await axios({
         method: 'get',
@@ -44,13 +45,6 @@ const downloadChunk = async (url, thread, downloads, directory, index) => {
     return new Promise((resolve, reject) => {
         tracking = setInterval(() => {
             downloads[directory]["downloadedChunksSize"][index] = writer.bytesWritten;
-            /*
-            const newPercentage = parseInt(writer.bytesWritten / thread.total * 100).toFixed(0);
-            if (thread.percentage !== newPercentage) {
-                thread.percentage = newPercentage;
-                console.log(`${thread.path}: ${newPercentage}%`);
-            }
-             */
         }, 1000);
         response.data.pipe(writer);
         let error = null;
@@ -144,8 +138,13 @@ module.exports = () => {
 
     module.downloadList = async (socket, downloads) => {
         setInterval(() => {
-            const values = Object.values(downloads) ?? [];
-            console.log(values);
+            let values = Object.values(downloads) ?? [];
+            values = values.map( download => {
+                return {
+                    ...download,
+                    "percentage": (download["downloadedChunksSize"].reduce((a,b) => a+b, 0) / download["totalSize"] * 100).toFixed(0)
+                }
+            });
             socket.emit("downloadList", JSON.stringify(values));
         }, 1000);
     }
@@ -153,6 +152,7 @@ module.exports = () => {
     module.download = async (url, directory, name, socket, downloads) => {
         const cookie = await connectToRepository();
         directory = (`${gamesDirectory}/${directory}`).replace(/\\/g, '/');
+        console.log(directory);
         if (!fs.existsSync(directory)) {
             fs.mkdirSync(directory, {recursive: true});
         }
@@ -167,7 +167,9 @@ module.exports = () => {
         //start download process
         fs.writeFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, JSON.stringify({
             "name": name,
-            "state": "downloading"
+            "state": "downloading",
+            "url": url,
+            "chunks":threads.map(c => { return {"start": c.start, "end": c.end}})
         }));
         socket.emit("downloadResponse",JSON.stringify({"type":"success","message":`${name} has started downloading !`}));
         const details = _getGameDetails(directory);
@@ -175,7 +177,6 @@ module.exports = () => {
         //DOWNLOAD PARTITIONS
         try {
             let seconds = 0;
-            let downloadedSize = 0;
             downloads[directory] = {
                 "totalSize": parseInt(total), //byte size
                 "downloadedChunksSize": threads.map(e => 0),
@@ -190,9 +191,10 @@ module.exports = () => {
             clearInterval(timer);
             console.log(`${total / (1024 * 1024) / downloads[directory]["time"]}Mo/s en moyenne`);
         } catch (e) {
-            console.log(`Error while merging ${directory}/game.zip`);
+            console.log(`Error while downloading ${name}`);
             console.log(e);
         }
+
         //MERGING
         try {
             await mergeFiles(threads.map(thread => thread.path), `${directory}/game.zip`);
@@ -217,9 +219,10 @@ module.exports = () => {
             if (fs.existsSync(filePath)) {
                 fs.rmSync(filePath);
             }
-            const content = fs.readFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, 'utf8');
+            const content = JSON.parse(fs.readFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, 'utf8'));
+            delete content["chunks"];
             fs.writeFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, JSON.stringify({
-                ...JSON.parse(content),
+                ...content,
                 "state": "downloaded"
             }));
         } catch (e) {
@@ -227,6 +230,7 @@ module.exports = () => {
         }
 
         delete downloads[directory];
+
     }
     module.launchGame = async (gamePath, socket) => {
         const emulatorPath = path.join(appRoot, "public/emulators/pcsx2/pcsx2.exe");
@@ -254,6 +258,84 @@ module.exports = () => {
                 }
             }
         });
+    }
+
+    module.restartDownload = async (url, directory, name, socket, downloads) => {
+        const cookie = await connectToRepository();
+        const content = JSON.parse(fs.readFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, 'utf8'));
+        let threads = content["chunks"].map((chunk,i) => {
+            const actualSizeInBytes = fs.statSync(`${directory}/game${i + 1}.zip`)?.size;
+            return {
+                "downloaded": actualSizeInBytes,
+                "path": `${directory}/game${i + 1}.zip`,
+                "index": i + 1,
+                "start": chunk.start + actualSizeInBytes,
+                "end": chunk.end,
+                "headers": {
+                    "cookie": cookie,
+                    "Range": `bytes=${chunk.start + actualSizeInBytes}-${chunk.end}`
+                }
+            }
+        });
+
+        socket.emit("restartDownloadResponse",JSON.stringify({"type":"success","message":`${name} download has restarted !`}));
+        const details = _getGameDetails(directory);
+
+        //RESTARTING DOWNLOAD OF CHUNKS
+        try {
+            const threadsToDownload = threads.filter(thread => thread.start < thread.end);
+            let seconds = 0;
+            downloads[directory] = {
+                "totalSize": threadsToDownload.reduce((a,b) => a + (b.end - b.start), 0), //byte size
+                "downloadedChunksSize": threadsToDownload.map(e => e.downloaded),
+                "name": details.name,
+                "time": seconds,
+                "picture": details.cover ?? null,
+            };
+            const timer = setInterval(() => {
+                downloads[directory]["time"] += 1;
+            }, 1000);
+            await Promise.all(threadsToDownload.map((thread, index) => downloadChunk(url, thread, downloads, directory, index)));
+            clearInterval(timer);
+        } catch (e) {
+            console.log(`Error while restarting ${name} downloads`);
+            console.log(e);
+        }
+
+        try {
+            await mergeFiles(threads.map(thread => thread.path), `${directory}/game.zip`);
+        } catch (e) {
+            console.log(`Error while merging ${directory}/game.zip`);
+            console.log(e);
+        }
+
+        //REMOVING SPLITTED ZIP
+        for (let splittedFilePath of threads.map(thread => thread.path)) {
+            try {
+                fs.unlinkSync(splittedFilePath);
+            } catch (e) {
+                console.log(`Error while unlinking ${splittedFilePath}`);
+                console.log(e);
+            }
+        }
+
+        try {
+            const filePath = `${directory}/game.zip`;
+            await unZip(filePath, directory);
+            if (fs.existsSync(filePath)) {
+                fs.rmSync(filePath);
+            }
+            const content = JSON.parse(fs.readFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, 'utf8'));
+            delete content["chunks"];
+            fs.writeFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, JSON.stringify({
+                ...content,
+                "state": "downloaded"
+            }));
+        } catch (e) {
+            console.log(e);
+        }
+
+        delete downloads[directory];
     }
 
     return module;

@@ -21,59 +21,10 @@ Loading plugins from C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\pu
 	Bound  PAD: LilyPad.dll [LilyPad (20200506140834) 0.12.1]
 	Bound SPU2: Spu2-X.dll [SPU2-X 20200506140834 2.0.0]
 	Bound CDVD: cdvdGigaherz.dll [cdvdGigaherz 20200506140834 0.11.0]
-(GameDB) 9858 games on record (loaded in 184ms)
 	Bound  USB: USBnull.dll [USBnull Driver 20200506140834 0.7.0]
 	Bound   FW: FWnull.dll [FWnull Driver 20200506140834 0.7.0]
 	Bound DEV9: DEV9null.dll [DEV9null Driver 20200506140834 0.5.0]
 Plugins loaded successfully.
 
-HLE Notice: ELF does not have a path.
-
-Initializing plugins...
-	Init GS
-	Init PAD
-	Init SPU2
-	Init CDVD
-	Init USB
-	Init FW
-	Init DEV9
-Plugins initialized successfully.
-
-Patches: No CRC found, using 00000000 instead.
-Opening plugins...
-	Opening GS
-	Opening PAD
-	Opening SPU2
-	Opening CDVD
-CDVDiso Error: No filename specified.
-Closing plugins...
-	Closing SPU2
-	Closing PAD
-	Closing GS
-3.x GL context successfully created
-OpenGL information. GPU: Quadro K3100M/PCIe/SSE2. Vendor: NVIDIA Corporation. Driver: NVIDIA 392.68
-INFO: GL_ARB_sparse_texture is NOT SUPPORTED
-INFO: GL_ARB_sparse_texture2 is NOT SUPPORTED
-INFO: GL_ARB_gpu_shader5 is available
-INFO: GL_ARB_shader_image_load_store is available
-INFO: GL_ARB_compute_shader is available
-INFO: GL_ARB_shader_storage_buffer_object is available
-INFO: GL_ARB_texture_view is available
-INFO: GL_ARB_vertex_attrib_binding is available
-INFO: GL_ARB_clear_texture is available
-INFO: GL_ARB_multi_bind is available
-INFO: GL_ARB_direct_state_access is available
-INFO: GL_ARB_texture_barrier is available
-INFO: GL_ARB_get_texture_sub_image is available
-
-Current Renderer: OpenGL (Hardware renderer)
-Available VRAM/RAM:3840MB for textures
-GSdx Lookup CRC:0
-GSdx Lookup CRC:0
-Delete 0 Shaders, 34 Programs, 28 Pipelines
-Plugins closed successfully.
-Shutting down plugins...
-Plugins shutdown successfully.
-(pxActionEvent) CDVD plugin failed to open!(thread:EE Core)
-User-canceled plugin configuration after plugin initialization failure.  Plugins unloaded.
+(GameDB) 9858 games on record (loaded in 528ms)
 (GameDB) Unloading...
