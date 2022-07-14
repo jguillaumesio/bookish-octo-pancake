@@ -42,9 +42,6 @@ const _arraySimilarityPercentage = (s1, s2) => {
 }
 
 exports.stringsSimilarityPercentage = (s1, s2) => {
-    if( _compareArrayElements(s1.split(/-| /), s2.split(/-| /))){
-        return 1.0;
-    }
     let longer = s1;
     let shorter = s2;
     if (s1.length < s2.length) {
@@ -55,7 +52,16 @@ exports.stringsSimilarityPercentage = (s1, s2) => {
     if (longerLength === 0) {
         return 1.0;
     }
-    return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength) * _arraySimilarityPercentage(s1.split(/-| /), s2.split(/-| /));
+    return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+}
+
+exports.filterByArray = (string, stringToCompareTo) => {
+    if( _compareArrayElements(string.split(/-| /), stringToCompareTo.split(/-| /))){
+        return 1.0;
+    }
+    string = string.split(/-| /).filter(e => e.length !== 0 && !(new RegExp(/^[\s()=:\]\[#<>~&!\/\\^;+%£¨*$€é°{}|@_,.'"-]*$/).test(e)));
+    stringToCompareTo = stringToCompareTo.split(/-| /).filter(e =>  e.length !== 0 && !(new RegExp(/^[\s()=:\]\[#<>~&!\/\\^;+%£¨*$€é°{}|@_,.'"-]*$/).test(e)));
+    return string.filter(e => stringToCompareTo.includes(e)).length > 0;
 }
 
 exports.replaceAll = (string, find, replace) => {

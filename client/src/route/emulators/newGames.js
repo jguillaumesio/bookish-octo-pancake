@@ -1,13 +1,13 @@
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import GameDataService from "../service/game.service";
-import {TextGameList} from "../component/TextGameList";
+import GameDataService from "../../service/game.service";
+import {TextGameList} from "../../component/TextGameList";
 import * as React from "react";
-import {KeyContext} from '../provider/HotKeyProvider';
-import {buttons} from "../utils/pad";
+import {KeyContext} from '../../provider/HotKeyProvider';
+import {buttons} from "../../utils/pad";
 import {CircularProgress} from "@mui/material";
 import {makeStyles} from "@mui/styles";
-import {TopBar} from "../component/TopBar";
+import {TopBar} from "../../component/TopBar";
 
 const useStyle = makeStyles({
     'selectedFilter':{

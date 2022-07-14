@@ -1,7 +1,6 @@
 import {useEffect, useState} from "react";
-import GameDataService from "../service/game.service";
-import {GameCaroussel} from "../component/GameCaroussel";
-import {ButtonBottomIndicator} from "../component/ButtonBottomIndicator";
+import GameDataService from "../../service/game.service";
+import {GameCaroussel} from "../../component/GameCaroussel";
 
 export const GameListIndex = () => {
 

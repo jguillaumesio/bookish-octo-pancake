@@ -1,12 +1,13 @@
 const fs = require("fs");
 const axios = require("axios");
-const {stringsSimilarityPercentage} = require("./../../utils");
+const {filterByArray, stringsSimilarityPercentage} = require("./../../utils");
 const path = require("path");
 const {PS2Repositories} = require("../../resources/games");
 const HTMLParser = require("node-html-parser");
 const {decimalTo32octetsBinary, binaryToDecimal} = require("../../utils");
 
 const gamesDirectory = `${appRoot}/public/games`;
+const alphabetArray = ["0-9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
 
 const authenticate = async () => {
     const response = await axios.post(`https://id.twitch.tv/oauth2/token?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=client_credentials`)
@@ -82,7 +83,7 @@ const _findTag = async (id, typeId, token) => {
 
 const parseGameDetailsTag = async (tags, token) => {
     const result = [];
-    for (let i of tags) {
+    for (let i of tags.slice(0, process.env.MAX_TAGS_NUMBER)) {
         const binary = decimalTo32octetsBinary(i);
         const tagsDetails = await _findTag(binaryToDecimal(binary.slice(4, 32).join("")), binaryToDecimal(binary.slice(0, 4).join("")), token);
         result.push(...tagsDetails);
@@ -90,26 +91,67 @@ const parseGameDetailsTag = async (tags, token) => {
     return result;
 }
 
+const correctNameDefault = (search) => {
+    const numberRegex = new RegExp(/[0-9]*?(\.)[0.9]*?/);
+    return search.replace(numberRegex,",");
+}
+
 const _searchGameDetails = async (search, token) => {
-    try{
-        const data = await _igdbRequest("games", `fields category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${search}"*;`, token)
-        return data.map(e => {
-            return {
-                ...e,
-                "cover": {"url": e?.cover?.url?.replace("t_thumb", "t_cover_big")},
-                "screenshots": e?.screenshots?.map(s => {
-                    return {...s, "url": s.url.replace("t_thumb", "t_original")}
-                })
+    search = correctNameDefault(search);
+    const searchArray = search.split(/ |-/).map((e,i) => search.split(/ |-/).slice(0,search.split(/ |-/).length - i).join(" "));
+    let rawGames = [];
+    for(const search of searchArray){
+        const result = await axios.get(`https://www.igdb.com/search_autocomplete_all?q=${search}`,{
+            headers:{
+                "x-requested-with": "XMLHttpRequest"
             }
-        });
-    }catch(e){
-        console.log(e);
+        }).then(response => (response.data["game_suggest"] ?? []));
+        rawGames.push(...[...result].filter(e => !rawGames.includes(e.name)).map(e => e.name));
+    }
+    rawGames = [...rawGames].filter(rawGame => filterByArray(rawGame, search)).map(game => {
+        return {
+            "name":game,
+            "similarity": stringsSimilarityPercentage(game, search)
+        }
+    });
+    const searches = keepBestMatches(rawGames);
+    if(rawGames.length > 0){
+        try{
+            const results = [];
+            for(let searchName of searches.map(e => e.name)){
+                let data = await _igdbRequest("games", `fields category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${searchName}"*;`, token)
+                if([...data].length === 0){
+                    data = await _igdbRequest("games", `fields category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where name ~ *"${searchName}"*;`, token)
+                }
+                results.push(...[...data].map(e => {
+                    return {
+                        ...e,
+                        "cover": {"url": e?.cover?.url?.replace("t_thumb", "t_cover_big")},
+                        "screenshots": e?.screenshots?.map(s => {
+                            return {...s, "url": s.url.replace("t_thumb", "t_original")}
+                        }),
+                        "similarity": stringsSimilarityPercentage(e.name, search)
+                    }
+                }).filter(e => !results.includes(e)))
+            }
+            return results;
+        }catch(e){
+            console.log(e);
+            return [];
+        }
+    }
+    else{
         return [];
     }
 }
 
 const keepBestMatch = (matches) => {
-    return matches.reduce((bestMatch, element) => (element.matchPercentage > bestMatch.matchPercentage) ? element : bestMatch, matches[0]);
+    return matches.reduce((bestMatch, element) => (element.similarity > bestMatch.similarity) ? element : bestMatch, matches[0]);
+}
+
+const keepBestMatches = (matches, threesold = 0.1) => {
+    const bestSimilarity = matches.reduce((bestMatch, element) => (element.similarity > bestMatch.similarity) ? element : bestMatch, matches[0]).similarity;
+    return matches.filter(e => e.similarity >= bestSimilarity - threesold);
 }
 
 const _refreshNewGameList = async () => {
@@ -123,17 +165,8 @@ const _refreshNewGameList = async () => {
             console.log(e);
             continue;
         }
-        page = HTMLParser.parse(page.toString(), {blockTextElements: {pre: true}})
-            .getElementsByTagName("html")[0]
-            .getElementsByTagName("body")[0]
-            .getElementById("wrap")
-            .getElementById("maincontent")
-            .querySelectorAll(".container")[0]
-            .querySelectorAll(".download-directory-listing")[0]
-            .querySelectorAll("pre")[0];
-        page = HTMLParser.parse(page.firstChild.rawText)
-            .querySelectorAll("table")[0]
-            .querySelectorAll("tr");
+        page = HTMLParser.parse(page.toString(), {blockTextElements: {pre: true}}).getElementsByTagName("html")[0].getElementsByTagName("body")[0].getElementById("wrap").getElementById("maincontent").querySelectorAll(".container")[0].querySelectorAll(".download-directory-listing")[0].querySelectorAll("pre")[0];
+        page = HTMLParser.parse(page.firstChild.rawText).querySelectorAll("table")[0].querySelectorAll("tr");
         for (let i of page) {
             let row = i.querySelectorAll("td");
             for (let y of row) {
@@ -173,13 +206,60 @@ const parseName = (name) => {
 const filterGames = (games) => {
     return games.reduce((list, game) => {
         const index = list.findIndex(i => i.name === game.name);
-        (index === -1) ? list.push({name: game.name, games: [game]}) : list[index].games.push(game);
+        (index === -1) ? list.push({name: game.name,directory: game.directory, games: [{"rawName":game.rawName, "url":game.url}]}) : list[index].games.push({"rawName":game.rawName, "url":game.url});
         return list;
     }, []);
 }
 
+const findDirectoryByLetter = (gameDirectory) => {
+    const digit = new RegExp(/[0-9]/);
+    const firstLetter = gameDirectory[0];
+    if(digit.test(firstLetter)){
+        return `${gamesDirectory}/0-9/${gameDirectory}`;
+    }
+    return `${gamesDirectory}/${firstLetter}/${gameDirectory}`;
+}
+
+const createAlphabetDirectory = () => {
+    for(let i of alphabetArray){
+        const directory = `${gamesDirectory}/${i}`;
+        if(!fs.existsSync(directory)){
+            fs.mkdirSync(directory);
+        }
+    }
+}
+
 module.exports = (app, token) => {
     const module = {};
+    module.generateAllDetails = async (req, res) => {
+        token = (!token) ? await authenticate(token) : token;
+        createAlphabetDirectory();
+        const result = await _getNewGameList(token);
+        let i = 0;
+        let error = [];
+        for(const search of result.value){
+            let game = {};
+            const detailPath = `${findDirectoryByLetter(search.games[0].directory)}/details.json`;
+            try{
+                const response = await _searchGameDetails(search.name ,token);
+                if(response.length > 0){
+                    game = keepBestMatch(response);
+                    if("involved_companies" in game){
+                        game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+                    }
+                    _createGameDetails(detailPath,game);
+                }
+                else{
+                    error.push(search.name);
+                }
+            }catch(e){
+                error.push(search.name);
+            }
+            i++;
+        }
+        res.send(error);
+    }
+
     module.refreshNewGameList = async (req,res) => {
         try{
             token = (!token) ? await authenticate(token) : token;
@@ -207,8 +287,9 @@ module.exports = (app, token) => {
         const {search, directoryName} = req.body;
 
         let game = {};
-        const detailPath = `${gamesDirectory}/${directoryName}/details.json`;
-        const informationFilePath = `${gamesDirectory}/${directoryName}/${process.env.INFORMATIONS_FILENAME}`;
+        const basePath = findDirectoryByLetter(directoryName);
+        const detailPath = `${basePath}/details.json`;
+        const informationFilePath = `${basePath}/${process.env.INFORMATIONS_FILENAME}`;
         if(fs.existsSync(detailPath)){
             try{
                 const details = fs.readFileSync(detailPath, "utf-8");
@@ -216,6 +297,13 @@ module.exports = (app, token) => {
                     ...JSON.parse(details),
                     "state": null
                 };
+                if("tags" in game && typeof game.tags[0] !== 'object'){
+                    game.tags = await parseGameDetailsTag(game.tags,token);
+                    if("involved_companies" in game){
+                        game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+                    }
+                    _createGameDetails(detailPath,game);
+                }
                 if(fs.existsSync(informationFilePath)){
                     const temp = JSON.parse(fs.readFileSync(informationFilePath, "utf-8"));
                     game.state = temp.state;
@@ -225,60 +313,8 @@ module.exports = (app, token) => {
             }
         }
         else{
-            const regexDigitsOnly = /^\d+$/gm;
-            const searchArray = search.split(/-| |:/).map(e => e.trim()).filter(e => e.length >= 2 && !e.match(regexDigitsOnly))
-
             token = (!token) ? await authenticate(token) : token;
-
-            let response = await _searchGameDetails(search, token);
-            response = response.map(game => { return{
-                ...game,
-                matchPercentage: stringsSimilarityPercentage(game.name, search)
-            }});
-            if(new RegExp(/[0-9]/g).test(search)){
-                let result = await _searchGameDetails(search.replace(/[0-9]/g, ""), token);
-                response.push(...result.map(game => { return{
-                    ...game,
-                    matchPercentage: stringsSimilarityPercentage(game.name, search)
-                }}));
-            }
-            if (search.includes("-")){
-                const searchArrayByTiret = search.split("-")
-                for (let i of searchArrayByTiret) {
-                    let result = await _searchGameDetails(i, token);
-                    result = result.map(game => { return{
-                        ...game,
-                        matchPercentage: stringsSimilarityPercentage(game.name, search)
-                    }});
-                    response.push(...result);
-                    if(result.findIndex(game => game.matchPercentage === 1) !== -1){
-                        break;
-                    }
-                    i++;
-                }
-            }
-            if (search.includes("-")){
-                let result = await _searchGameDetails(search.replace(/-/,": "), token);
-                response.push(...result.map(game => { return{
-                    ...game,
-                    matchPercentage: stringsSimilarityPercentage(game.name, search)
-                }}));
-            }
-            if (searchArray !== 0) {
-                for (let i of searchArray) {
-                    let result = await _searchGameDetails(i, token);
-                    result = result.map(game => { return{
-                        ...game,
-                        matchPercentage: stringsSimilarityPercentage(game.name, search)
-                    }});
-                    response.push(...result);
-                    if(result.findIndex(game => game.matchPercentage === 1) !== -1){
-                        break;
-                    }
-                    i++;
-                }
-            }
-
+            const response = await _searchGameDetails(search ,token);
             game = keepBestMatch(response);
             if("tags" in game){
                 game.tags = await parseGameDetailsTag(game.tags,token);

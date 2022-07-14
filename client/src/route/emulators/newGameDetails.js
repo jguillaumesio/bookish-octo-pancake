@@ -1,9 +1,9 @@
 import {useEffect, useState, useContext} from "react";
 import {useLocation, useNavigate,} from "react-router-dom";
-import GameDataService from "../service/game.service";
+import GameDataService from "../../service/game.service";
 import * as React from "react";
-import {KeyContext} from '../provider/HotKeyProvider';
-import {buttons} from "../utils/pad";
+import {KeyContext} from '../../provider/HotKeyProvider';
+import {buttons} from "../../utils/pad";
 import {Chip, CircularProgress, Alert, Rating, Dialog, DialogTitle, List, ListItem, ListItemText, Typography, Snackbar} from "@mui/material";
 import {Star} from '@mui/icons-material';
 import {makeStyles} from "@mui/styles";
@@ -60,7 +60,7 @@ export const NewGameDetailsIndex = () => {
     useEffect(async () => {
         setKeys(keyEvents);
         try{
-            const response = await GameDataService.searchGameDetails(game.name, game.games[0].directory).then(response => response.data);
+            const response = await GameDataService.searchGameDetails(game.name, game.directory).then(response => response.data);
             if("type" in response && response.type === "success"){
                 setGameDetails({...game, ...response.value});
             }

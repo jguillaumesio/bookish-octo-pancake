@@ -1,11 +1,11 @@
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import * as React from "react";
-import {KeyContext} from '../provider/HotKeyProvider';
-import {buttons} from "../utils/pad";
+import {KeyContext} from '../../provider/HotKeyProvider';
+import {buttons} from "../../utils/pad";
 import {makeStyles} from "@mui/styles";
-import {TopBar} from "../component/TopBar";
-import GameService from "../service/game.service";
+import {TopBar} from "../../component/TopBar";
+import GameService from "../../service/game.service";
 
 const useStyle = makeStyles({
     'container':{

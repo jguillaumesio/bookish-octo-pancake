@@ -10,6 +10,7 @@ module.exports = (app,token) => {
     router.get("/refresh", games.refreshNewGameList);
     router.get("/installPad", pad.installPad);
     router.post("/details", games.searchGameDetails);
+    router.get("/generateAllDetails", games.generateAllDetails);
     router.get("/", games.getGames);
   
     app.use('/api/games', router);

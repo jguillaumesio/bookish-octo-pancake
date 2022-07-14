@@ -8,16 +8,15 @@ const disableUAC = async () => {
     const command = "reg ADD HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v EnableLUA /t REG_DWORD /d 0 /f";
     try {
         await new Promise((resolve, reject) => {
-            exec(command, (error, stdout, stderr) => {
-                if (error || stderr) {
-                    console.log(error);
-                    console.log(stderr);
-                    reject(error);
-                }
-                else{
-                    resolve();
-                }
-            });
+            try{
+                exec(command, (error, stdout, stderr) => {
+                    if (error) return reject(error)
+                    if (stderr) return reject(error)
+                    return resolve(stdout)
+                });
+            }catch(e){
+                reject(e);
+            }
         });
         return true;
     } catch (e) {
@@ -30,16 +29,15 @@ const installDriverSilently = async (infPath) => {
     const command = `pnputil -i -a ${infPath}`;
     try {
         await new Promise((resolve, reject) => {
-            exec(command, (error, stdout, stderr) => {
-                if (error || stderr) {
-                    console.log(error);
-                    console.log(stderr);
-                    reject(error);
-                }
-                else{
-                    resolve();
-                }
-            });
+            try{
+                exec(command, (error, stdout, stderr) => {
+                    if (error) return reject(error)
+                    if (stderr) return reject(error)
+                    return resolve(stdout)
+                });
+            }catch(e){
+                reject(e);
+            }
         });
         return true;
     } catch (e) {
@@ -51,17 +49,15 @@ const installMsiSilently = async (exePath) => {
     const command = `msiexec /i ${exePath} /passive`;
     try {
         await new Promise((resolve, reject) => {
-            exec(command, (error, stdout, stderr) => {
-                if (error || stderr) {
-                    console.log(error);
-                    console.log(stderr);
-                    reject(error);
-                }
-                else{
-                    console.log(stdout);
-                    resolve();
-                }
-            });
+            try{
+                exec(command, (error, stdout, stderr) => {
+                    if (error) return reject(error)
+                    if (stderr) return reject(error)
+                    return resolve(stdout)
+                });
+            }catch(e){
+                reject(e);
+            }
         });
         return true;
     } catch (e) {
@@ -71,7 +67,7 @@ const installMsiSilently = async (exePath) => {
 
 module.exports = (app, token) => {
     const module = {};
-    module.installPad = async (req, res) => {
+    module.installBluetooth = async (req, res) => {
         //disable UAC
         const UACStep = await disableUAC();
         if(!UACStep){
@@ -82,10 +78,9 @@ module.exports = (app, token) => {
             return;
         }
 
-        /*
         //install BthPS3 (bluetooth PS3 utility)
         const PS3BluetoothStep = await installMsiSilently(`public\\installation\\BthPS3Setup_x64.msi`);
-        if(!UACStep){
+        if(!PS3BluetoothStep){
             res.send({
                 "type":"error",
                 "message":"Error while installing bluetooth utility"
@@ -93,8 +88,9 @@ module.exports = (app, token) => {
             return;
         }
         console.log("Bluetooth utility");
-         */
+    }
 
+    module.installPad = async (req, res) => {
         //install driver
         const PS3PadDriverStep = await installDriverSilently(`public\\installation\\dshidmini_v2.2.282.0\\x64\\dshidmini\\dshidmini.inf`);
         if(!PS3PadDriverStep){
