@@ -7,6 +7,7 @@ import {buttons} from "../../utils/pad";
 import {Chip, CircularProgress, Alert, Rating, Dialog, DialogTitle, List, ListItem, ListItemText, Typography, Snackbar} from "@mui/material";
 import {Star} from '@mui/icons-material';
 import {makeStyles} from "@mui/styles";
+import {KeyboardContext} from "../../component/VisualKeyboard";
 
 const useStyle = makeStyles({
     screenshot: {
@@ -41,10 +42,17 @@ export const NewGameDetailsIndex = () => {
     const [snackbar,setSnackbar] = useState({"state": false, "type": null, "message":"" });
     const [selectedContainer, setSelectedContainer] = useState(0);
     const [setKeys] = useContext(KeyContext);
+    const [setIsOpen, setKeyboardCallback, setKeyboardCloseCallback] = useContext(KeyboardContext);
 
     const setOpenAvailableDownloads = (state) => {
+        if(!("state" in gameDetails)){
+            return;
+        }
         if(gameDetails.state === "downloaded"){
             setSnackbar({"type":"error", "message":"Le jeu est déjà dans la bibliothèque !", "state": true});
+        }
+        else if(gameDetails.state === "downloading"){
+            setSnackbar({"type":"error", "message":"Le jeu est déjà en téléchargement !", "state": true});
         }
         else{
             _setOpenAvailableDownloads(state);
@@ -55,7 +63,7 @@ export const NewGameDetailsIndex = () => {
 
     useEffect(() => {
         setKeys(keyEvents);
-    }, [selectedContainer, screenshots]);
+    }, [selectedContainer, gameDetails, screenshots]);
 
     useEffect(async () => {
         setKeys(keyEvents);
@@ -112,11 +120,14 @@ export const NewGameDetailsIndex = () => {
     }
 
     const download = () => {
-        const toDownload = game.games[selectedGameDownload];
         setOpenAvailableDownloads(-1);
-        GameDataService.download(toDownload.url, toDownload.directory, toDownload.name, (args) => {
+        GameDataService.download(game.games[selectedGameDownload].url, game.directory, game.name, (args) => {
             setOpenAvailableDownloads(0);
             setSnackbar({...args, "state": true});
+            setGameDetails({
+                ...gameDetails,
+                "state":"downloading"
+            });
         });
     }
 
@@ -139,6 +150,20 @@ export const NewGameDetailsIndex = () => {
     }
 
     const keyEvents = [
+        {
+            ...buttons.L1,
+            label: "Clavier",
+            args: {},
+            callback: () => {
+                setKeyboardCallback(_ => (value) => {
+                    console.log(value);
+                });
+                setKeyboardCloseCallback(_ => () => {
+                    setKeys(keyEvents)
+                })
+                setIsOpen(true);
+            }
+        },
         {
             ...buttons.right,
             label: "Galerie d'image",

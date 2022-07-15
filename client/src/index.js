@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom';
 import reportWebVitals from './reportWebVitals';
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {HomeIndex, GameListIndex, NewGameListIndex, DownloadListIndex, NewGameDetailsIndex} from "./route";
-import {StyleProvider} from "./provider/StyleProvider";
+import {GlobalProvider} from "./provider/GlobalProvider";
 
 ReactDOM.render(
     <BrowserRouter>
         <Routes>
-            <Route path="/" element={<StyleProvider/>}>
+            <Route path="/" element={<GlobalProvider/>}>
                 <Route index element={<HomeIndex breadCrumb={["Home"]}/>}/>
                 <Route path="emulators">
                     <Route index element={<GameListIndex breadCrumb={["Home","My Games"]}/>}/>

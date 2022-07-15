@@ -24,7 +24,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 
-require("./api/routes")(app, token);
+require("./api/routes/game.route")(app, token);
+require("./api/routes/installation.route")(app, token);
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL);

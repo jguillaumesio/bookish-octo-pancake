@@ -1,4 +1,5 @@
 import {useRef} from "react";
+import {VisualKeyboard} from "../component/VisualKeyboard";
 const {VideoJS} = require("../component/VideoJS");
 
 
@@ -71,7 +72,8 @@ export const HomeIndex = () => {
     return (
         <div className='container' >
             <div className='content'>
-                <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
+                {/*<VideoJS options={videoJsOptions} onReady={handlePlayerReady} />*/}
+                <VisualKeyboard/>
             </div>
         </div>
     )

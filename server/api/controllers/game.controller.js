@@ -334,17 +334,19 @@ module.exports = (app, token) => {
     module.getGames = async (req, res) => {
         let games = [];
         let files;
+        const allDirectories = alphabetArray.map(letter => `${gamesDirectory}/${letter}`);
         if (fs.existsSync(gamesDirectory)) {
             try {
-                files = fs.readdirSync(gamesDirectory);
+                files = allDirectories.reduce((a,directory) => {
+                    a.push(...fs.readdirSync(directory).map(e => `${directory}/${e}`));
+                    return a;
+                },[]);
                 files.forEach(folder => {
-                    if (fs.lstatSync(`${gamesDirectory}/${folder}`).isDirectory()) {
-                        if(fs.existsSync(`${gamesDirectory}/${folder}/${process.env.INFORMATIONS_FILENAME}`)){
-                            let informations = JSON.parse(fs.readFileSync(`${gamesDirectory}/${folder}/${process.env.INFORMATIONS_FILENAME}`,"utf-8"));
-                            if ("state" in informations && informations.state === "downloaded") {
-                                let details = JSON.parse(fs.readFileSync(`${gamesDirectory}/${folder}/details.json`,"utf-8"));
-                                games.push(details);
-                            }
+                    if(fs.existsSync(`${folder}/${process.env.INFORMATIONS_FILENAME}`)){
+                        let informations = JSON.parse(fs.readFileSync(`${folder}/${process.env.INFORMATIONS_FILENAME}`,"utf-8"));
+                        if ("state" in informations && informations.state === "downloaded") {
+                            let details = JSON.parse(fs.readFileSync(`${folder}/details.json`,"utf-8"));
+                            games.push(details);
                         }
                     }
                 });

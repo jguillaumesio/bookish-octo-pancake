@@ -133,6 +133,15 @@ const _getGameDetails = gameDirectory => {
     }
 }
 
+const findDirectoryByLetter = (gameDirectory) => {
+    const digit = new RegExp(/[0-9]/);
+    const firstLetter = gameDirectory[0];
+    if(digit.test(firstLetter)){
+        return `${gamesDirectory}/0-9/${gameDirectory}`;
+    }
+    return `${gamesDirectory}/${firstLetter}/${gameDirectory}`;
+}
+
 module.exports = () => {
     const module = {};
 
@@ -151,8 +160,7 @@ module.exports = () => {
 
     module.download = async (url, directory, name, socket, downloads) => {
         const cookie = await connectToRepository();
-        directory = (`${gamesDirectory}/${directory}`).replace(/\\/g, '/');
-        console.log(directory);
+        directory = (findDirectoryByLetter(directory)).replace(/\\/g, '/');
         if (!fs.existsSync(directory)) {
             fs.mkdirSync(directory, {recursive: true});
         }

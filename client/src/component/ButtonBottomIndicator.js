@@ -11,7 +11,7 @@ const useStyle = makeStyles({
         height: 'fit-content',
         padding: '10px',
         display: 'flex',
-        zIndex: 1
+        zIndex: 1301 //cause max zIndex is 1300 from backdrop
     }
 })
 
