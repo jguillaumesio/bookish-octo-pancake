@@ -16,9 +16,9 @@ export const HotKeyProvider = (props) => {
     const classes = useStyle();
     const {keys, setKeys} = props;
 
-    const listener = (e) => {
+    const listener = async (e) => {
         const element = keys.find(key => key.keyboard === e.key);
-        element?.callback(element?.args);
+        await element?.callback(element?.args);
     }
 
     //TODO https://developer.mozilla.org/en-US/docs/Games/Techniques/Controls_Gamepad_API

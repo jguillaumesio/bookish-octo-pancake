@@ -27,7 +27,6 @@ const generateDownloadChunksHeaders = (total, cookie, directory) => {
             },
             "total": end - start
         });
-        console.log(`${i}: ${start} to ${end}`);
         start = end + 1;
     }
     return threads;

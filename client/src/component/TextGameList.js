@@ -20,9 +20,6 @@ export const TextGameList = (props) => {
     let { games, offset, limit, isContainerSelected } = props;
     const selectedGame = games[offset];
 
-    console.log(offset);
-    console.log(games);
-
     const visibleGames = () => {
         return (offset + limit > games.length)
             ? [...games.slice(offset, games.length), ...games.slice(0, offset + limit - games.length)]

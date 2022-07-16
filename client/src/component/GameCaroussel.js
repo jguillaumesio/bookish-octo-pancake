@@ -13,15 +13,6 @@ export const GameCaroussel = (props) => {
     const offset = -selected?.index * (width + margin * 2) + (windowDimensions.width - (width + margin * 2)) / 2;//- selectedIndex * (width + margin * 2) + (windowDimensions.width - (width + margin * 2)) / 2;
     const [setKeys] = React.useContext(KeyContext);
 
-    useEffect(() => {
-        setSelected(games[Math.floor(games.length / 2)]);
-        setKeys(keyEvents);
-    }, [games]);
-
-    useEffect(() => {
-        setKeys(keyEvents);
-    },[selected]);
-
     const handleMoves = (increment) => {
         const modulo = (i, n) => {
             return ((i % n) + n) % n;
@@ -56,7 +47,16 @@ export const GameCaroussel = (props) => {
                 console.log("leave");
             }
         }
-    ]
+    ];
+
+    useEffect(() => {
+        setSelected(games[Math.floor(games.length / 2)]);
+        setKeys(keyEvents);
+    }, [games, setKeys, keyEvents]);
+
+    useEffect(() => {
+        setKeys(keyEvents);
+    },[selected, setKeys, keyEvents]);
 
     const handleItemStyle = (item) => {
         let style = {

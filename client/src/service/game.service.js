@@ -20,6 +20,10 @@ class GameDataService {
         return axios.post(`${this.root}/genres`, { "genres": genreList})
     }
 
+    searchByName(search){
+        return axios.post(`${this.root}/search`, { "search": search})
+    }
+
     refreshNewGameList(){
         return axios.get(`${this.root}/refresh`);
     }

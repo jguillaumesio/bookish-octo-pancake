@@ -8,6 +8,7 @@ module.exports = (app,token) => {
     router.get("/new", games.getNewGameList);
     router.get("/refresh", games.refreshNewGameList);
     router.post("/details", games.searchGameDetails);
+    router.post("/search", games.searchGameByName)
     router.get("/", games.getGames);
   
     app.use('/api/games', router);

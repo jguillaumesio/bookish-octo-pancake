@@ -12,7 +12,6 @@ export const GameListIndex = () => {
                 let tempGames = response.data.value.map((game, i) => {
                     return {...game, index: i}
                 })
-                console.log(tempGames);
                 setGames(tempGames);
             }
             else{

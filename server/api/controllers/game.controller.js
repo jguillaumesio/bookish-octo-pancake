@@ -231,6 +231,19 @@ const createAlphabetDirectory = () => {
 
 module.exports = (app, token) => {
     const module = {};
+    module.searchGameByName = async (req, res) => {
+        const { search } = req.body;
+        token = (!token) ? await authenticate(token) : token;
+        let result = await _getNewGameList(token);
+        if("type" in result && result.type === "success"){
+            result.value = result.value.filter(game =>
+                game.name.split(/ |-/).findIndex(partialName => stringsSimilarityPercentage(search.toLowerCase(), partialName.toLowerCase()) > 0.8) !== -1
+                ||
+                game.name.toLowerCase().includes(search.toLowerCase())
+            );
+        }
+        res.send(result);
+    }
     module.generateAllDetails = async (req, res) => {
         token = (!token) ? await authenticate(token) : token;
         createAlphabetDirectory();

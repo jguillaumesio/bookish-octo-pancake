@@ -123,13 +123,14 @@ export const VisualKeyboard = (props) => {
             ...buttons.cross,
             label: "Sélectionner",
             args: {"key": selectedKey},
-            callback: ({key}) => {
+            callback: async ({key}) => {
                 const regex = new RegExp(/{(.*?)}/);
-                if(regex.test(key)){
-                    switch (key){
+                if (regex.test(key)) {
+                    switch (key) {
                         case "{enter}":
-                            keyboardCallback(value);
+                            await keyboardCallback(value);
                             keyboardCloseCallback();
+                            setValue("");
                             setIsOpen(false);
                             break;
                         case "{bksp}":
@@ -139,8 +140,7 @@ export const VisualKeyboard = (props) => {
                             setValue(`${value} `)
                             break;
                     }
-                }
-                else{
+                } else {
                     setValue(`${value}${key}`)
                 }
             }
@@ -150,6 +150,7 @@ export const VisualKeyboard = (props) => {
             args: {"state": false},
             callback: ({state}) => {
                 keyboardCloseCallback();
+                setValue("");
                 setIsOpen(state)
             }
         },

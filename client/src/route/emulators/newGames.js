@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import GameDataService from "../../service/game.service";
 import {TextGameList} from "../../component/TextGameList";
@@ -8,6 +8,7 @@ import {buttons} from "../../utils/pad";
 import {CircularProgress} from "@mui/material";
 import {makeStyles} from "@mui/styles";
 import {TopBar} from "../../component/TopBar";
+import {KeyboardContext} from "../../component/VisualKeyboard";
 
 const useStyle = makeStyles({
     'selectedFilter':{
@@ -50,9 +51,34 @@ export const NewGameListIndex = ({breadCrumb}) => {
     const [isFiltered, setIsFiltered] = useState(0); //-1 loading, 0 not filtered, 1 filtered
     const [genres, setGenres] = useState([]);
     const [setKeys] = React.useContext(KeyContext);
+    const [setIsOpen, setKeyboardCallback, setKeyboardCloseCallback] = useContext(KeyboardContext);
 
     const getGames = () => {
         return (isFiltered) ? filteredGames : games;
+    }
+
+    const searchFiltering = async (genres, search, setIsFiltered, setSelectedGameIndex, setFilteredGames) => {
+        if(genres.findIndex(e => e.selected) !== -1){
+            setGenres(genres.map(e => { return {...e, "selected": false}}));
+        }
+        setIsFiltered(-1);
+        const response = await GameDataService.searchByName(search);
+        if("type" in response.data && response.data.type === "success"){
+            response.data.value.sort((a,b) => a.name.localeCompare(b.name) );
+            setSelectedGameIndex(0);
+            setFilteredGames(response.data.value);
+            setIsFiltered(1);
+        }
+    }
+
+    const handleSearchFiltering = async ({genres, setIsFiltered, setSelectedGameIndex, setFilteredGames}) => {
+        setKeyboardCallback(_ => async (search) => {
+            await searchFiltering(genres, search, setIsFiltered, setSelectedGameIndex, setFilteredGames);
+        });
+        setKeyboardCloseCallback(_ => () => {
+            setKeys(keyEvents)
+        })
+        setIsOpen(true);
     }
 
     const handleGenreFiltering = async ({genres, selectedGenreIndex, setIsFiltered, setSelectedGameIndex, setFilteredGames}) => {
@@ -139,34 +165,56 @@ export const NewGameListIndex = ({breadCrumb}) => {
     const keyEvents = [
         {
             ...buttons.bottom,
+            display: false,
             label:"Se déplacer",
             args: {"move": "down", "setSelectedGameIndex": setSelectedGameIndex, "games": getGames(), "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
             callback: selectedContainer.onMove
         },
         {
             ...buttons.top,
+            display: false,
             label:"Se déplacer",
             args: {"move": "up", "setSelectedGameIndex": setSelectedGameIndex, "games": getGames(), "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
             callback: selectedContainer.onMove
         },
         {
             ...buttons.right,
+            display: false,
             label:"Se déplacer",
             args: {"move": "right", "setSelectedContainer":setSelectedContainer},
             callback: handleContainerSelection
         },
         {
             ...buttons.left,
+            display: false,
             label:"Se déplacer",
             args: {"move": "left", "setSelectedContainer":setSelectedContainer},
             callback: handleContainerSelection
+        },
+        {
+            ...buttons.square,
+            label: "Réinitialiser",
+            args:{"setGenres": setGenres, "setIsFiltered": setIsFiltered, "setSelectedGameIndex": setSelectedGameIndex, "setFilteredGames": setFilteredGames},
+            callback: ({setGenres, setSelectedGameIndex, setFilteredGames, setIsFiltered}) => {
+                setGenres(genres => genres.map(e => { return {...e, "selected":false}}))
+                setIsFiltered(0);
+                setSelectedGameIndex(0);
+                setFilteredGames([]);
+            }
+        },
+        {
+            ...buttons.triangle,
+            label: "Chercher",
+            args:{"genres": genres, "setIsFiltered": setIsFiltered, "setSelectedGameIndex": setSelectedGameIndex, "setFilteredGames": setFilteredGames, "games": getGames(), "selectedGameIndex": selectedGameIndex},
+            callback: handleSearchFiltering
         },
         {
             ...buttons.cross,
             label: "Voir",
             args:{"genres": genres, "selectedGenreIndex": selectedGenreIndex, "setIsFiltered": setIsFiltered, "setSelectedGameIndex": setSelectedGameIndex, "setFilteredGames": setFilteredGames, "games": getGames(), "selectedGameIndex": selectedGameIndex},
             callback: selectedContainer.onTap
-        }, {
+        },
+        {
             ...buttons.circle,
             label: "Retour",
             callback: () => {
@@ -193,11 +241,16 @@ export const NewGameListIndex = ({breadCrumb}) => {
                             <div className={`${(selectedContainer.index === 0) ? classes.selectedContainer : ""} ${classes.genreContainer}`}>
                                 {genres.map((genre, index) => <span key={index} className={`${(genre.selected || (genre === genres[selectedGenreIndex] && (selectedContainer.index === 0))) ? classes.selectedFilter : ""}`}>{genre.name}</span>)}
                             </div>
-                            <div className={`${(selectedContainer.index === 1) ? classes.selectedContainer : ""} ${classes.gameContainer}`}>
-                                <div style={{ display:"flex", flex:1 }}>
-                                    {isFiltered === -1
-                                        ? <div style={{ display:"flex", width: "100%", height:"100%", alignItems:"center", justifyContent:"center"}}><CircularProgress/></div>
-                                        : <TextGameList offset={selectedGameIndex} isContainerSelected={(selectedContainer.index === 1)} limit={12} games={getGames()}/>}
+                            <div style={{ display:"flex", flexDirection:"column", flex:1}}>
+                                { isFiltered === 1 &&
+                                    <span style={{ color: "grey", textAlign:"right", padding:"0 8px"}}>{filteredGames.length} jeu(x) trouvé(s)</span>
+                                }
+                                <div className={`${(selectedContainer.index === 1) ? classes.selectedContainer : ""} ${classes.gameContainer}`}>
+                                    <div style={{ display:"flex", flex:1 }}>
+                                        {isFiltered === -1
+                                            ? <div style={{ display:"flex", width: "100%", height:"100%", alignItems:"center", justifyContent:"center"}}><CircularProgress/></div>
+                                            : <TextGameList offset={selectedGameIndex} isContainerSelected={(selectedContainer.index === 1)} limit={12} games={getGames()}/>}
+                                    </div>
                                 </div>
                             </div>
                         </div>

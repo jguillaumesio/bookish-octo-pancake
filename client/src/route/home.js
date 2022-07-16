@@ -5,7 +5,6 @@ const {VideoJS} = require("../component/VideoJS");
 
 export const HomeIndex = () => {
 
-    console.log(VideoJS);
     const channels = [
         "https://s12.tntendirect.com/tf1/live/playlist.m3u8?wmsAuthSign=c2VydmVyX3RpbWU9Ni8yMy8yMDIyIDQ6MTE6MzYgUE0maGFzaF92YWx1ZT14Mk1ZRTJFdEM5QkRxL2pjbEhjQWx3PT0mdmFsaWRtaW51dGVzPTMw",
         "https://s12.tntendirect.com/m6/live/chunks.m3u8?nimblesessionid=123947&wmsAuthSign=c2VydmVyX3RpbWU9Ni8yMy8yMDIyIDQ6MTU6MTQgUE0maGFzaF92YWx1ZT1nOGY1Uzl5K3JTSGcwMzN2UEhpTUdBPT0mdmFsaWRtaW51dGVzPTMw",
