@@ -24,7 +24,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 
-require("./api/routes/game.route")(app, token);
+let downloads = {};
+
+require("./api/routes/music.route")(app);
+require("./api/routes/game.route")(app, token, downloads);
 require("./api/routes/installation.route")(app, token);
 
 app.use(function (req, res, next) {
@@ -32,7 +35,6 @@ app.use(function (req, res, next) {
     next();
 });
 
-let downloads = {};
 io.on("connection", (socket) => {
     console.info(`Socket ${socket.id} has connected.`);
 
@@ -41,6 +43,7 @@ io.on("connection", (socket) => {
     });
 
     require('./socket/events/game.event')(socket, downloads);
+    require('./socket/events/music.event')(socket);
 });
 
 server.listen(8080, function() {

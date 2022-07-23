@@ -99,27 +99,38 @@ export const VisualKeyboard = (props) => {
     const keyEvents = [
         {
             ...buttons.right,
-            label: "Se déplacer",
+            display: false,
             args: {"move": "right"},
             callback: handleMove
         },
         {
             ...buttons.left,
-            label: "Se déplacer",
+            display: false,
             args: {"move": "left"},
             callback: handleMove
         },
         {
             ...buttons.top,
-            label: "Se déplacer",
+            display: false,
             args: {"move": "top"},
             callback: handleMove
         },{
             ...buttons.bottom,
-            label: "Se déplacer",
+            display: false,
             args: {"move": "bottom"},
             callback: handleMove
         }, {
+            ...buttons.select,
+            label: "Valider",
+            args:{},
+            callback: async () => {
+                await keyboardCallback(value);
+                keyboardCloseCallback();
+                setIsOpen(false);
+                setValue("");
+            }
+        },
+        {
             ...buttons.cross,
             label: "Sélectionner",
             args: {"key": selectedKey},
@@ -130,8 +141,8 @@ export const VisualKeyboard = (props) => {
                         case "{enter}":
                             await keyboardCallback(value);
                             keyboardCloseCallback();
-                            setValue("");
                             setIsOpen(false);
+                            setValue("");
                             break;
                         case "{bksp}":
                             setValue(value.slice(0, value.length - 1));

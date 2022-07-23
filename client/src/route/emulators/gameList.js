@@ -20,10 +20,14 @@ export const GameListIndex = () => {
         })
     },[]);
 
+    const launchGame = ({path}) => {
+        GameDataService.launchGame(path)
+    }
+
     return (
         <div className="container" >
             <div className="content" style={{ alignItems:'center', justifyContent:'center'}}>
-                <GameCaroussel onEnter={() => console.log('toLaunch')} onBackspace={()=> console.log('back')} games={games}/>
+                <GameCaroussel onEnter={launchGame} onBackspace={()=> console.log('back')} games={games}/>
             </div>
         </div>
     )

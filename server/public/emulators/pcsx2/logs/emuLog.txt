@@ -21,12 +21,12 @@ Loading plugins from C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\pu
 	Bound  PAD: LilyPad.dll [LilyPad (20200506140834) 0.12.1]
 	Bound SPU2: Spu2-X.dll [SPU2-X 20200506140834 2.0.0]
 	Bound CDVD: cdvdGigaherz.dll [cdvdGigaherz 20200506140834 0.11.0]
-(GameDB) 9858 games on record (loaded in 274ms)
 	Bound  USB: USBnull.dll [USBnull Driver 20200506140834 0.7.0]
 	Bound   FW: FWnull.dll [FWnull Driver 20200506140834 0.7.0]
 	Bound DEV9: DEV9null.dll [DEV9null Driver 20200506140834 0.5.0]
 Plugins loaded successfully.
 
+(GameDB) 9858 games on record (loaded in 301ms)
 HLE Notice: ELF does not have a path.
 
 Initializing plugins...
@@ -75,5 +75,3 @@ Plugins closed successfully.
 Shutting down plugins...
 Plugins shutdown successfully.
 (pxActionEvent) CDVD plugin failed to open!(thread:EE Core)
-User-canceled plugin configuration after plugin initialization failure.  Plugins unloaded.
-(GameDB) Unloading...

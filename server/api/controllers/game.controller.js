@@ -150,8 +150,11 @@ const keepBestMatch = (matches) => {
 }
 
 const keepBestMatches = (matches, threesold = 0.1) => {
-    const bestSimilarity = matches.reduce((bestMatch, element) => (element.similarity > bestMatch.similarity) ? element : bestMatch, matches[0]).similarity;
-    return matches.filter(e => e.similarity >= bestSimilarity - threesold);
+    if(matches.length > 0){
+        const bestSimilarity = matches.reduce((bestMatch, element) => (element.similarity > bestMatch.similarity) ? element : bestMatch, matches[0]).similarity;
+        return matches.filter(e => e.similarity >= bestSimilarity - threesold);
+    }
+    return [];
 }
 
 const _refreshNewGameList = async () => {
@@ -229,8 +232,50 @@ const createAlphabetDirectory = () => {
     }
 }
 
-module.exports = (app, token) => {
+const findGamePath = directory => {
+    try{
+        return fs.readdirSync(directory).filter(e => e.includes("iso") || e.includes("bin")).map(e => `${directory}/${e}`);
+    }catch(e){
+        console.log(e);
+        return null;
+    }
+}
+
+module.exports = (app, token, downloads) => {
     const module = {};
+    module.downloadsToResume = async (req,res) => {
+        try{
+            const result = [];
+            token = (!token) ? await authenticate(token) : token;
+            let games = await _getNewGameList(token);
+            for(const game of games.value){
+                const informationFilePath = `${findDirectoryByLetter(game.directory)}/${process.env.INFORMATIONS_FILENAME}`;
+                if( !(game.directory in downloads) && fs.existsSync(informationFilePath)){
+                    const information = JSON.parse(fs.readFileSync(informationFilePath, "utf-8"));
+                    const details = JSON.parse(fs.readFileSync(`${findDirectoryByLetter(game.directory)}/details.json`, "utf-8"));
+                    if("state" in information && information.state === "downloading"){
+                        result.push({
+                            ...game,
+                            "name": details.name,
+                            "picture": details.cover ?? null,
+                            "games": game.games.filter(e => e.url === information.url)
+                        });
+                    }
+                }
+            }
+            res.send({
+                type:"success",
+                value: result
+            });
+        }
+        catch(e){
+            console.log(e)
+            res.send({
+                type:"error",
+                value:[]
+            })
+        }
+    }
     module.searchGameByName = async (req, res) => {
         const { search } = req.body;
         token = (!token) ? await authenticate(token) : token;
@@ -244,6 +289,7 @@ module.exports = (app, token) => {
         }
         res.send(result);
     }
+
     module.generateAllDetails = async (req, res) => {
         token = (!token) ? await authenticate(token) : token;
         createAlphabetDirectory();
@@ -328,14 +374,23 @@ module.exports = (app, token) => {
         else{
             token = (!token) ? await authenticate(token) : token;
             const response = await _searchGameDetails(search ,token);
-            game = keepBestMatch(response);
-            if("tags" in game){
-                game.tags = await parseGameDetailsTag(game.tags,token);
+            if(response.length > 0){
+                game = keepBestMatch(response);
+                if("tags" in game){
+                    game.tags = await parseGameDetailsTag(game.tags,token);
+                }
+                if("involved_companies" in game){
+                    game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+                }
+                _createGameDetails(detailPath,game);
             }
-            if("involved_companies" in game){
-                game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+            else{
+                res.send({
+                    type:"error",
+                    value: "Aucun jeu trouvé"
+                });
+                return;
             }
-            _createGameDetails(detailPath,game);
         }
 
         res.send({
@@ -358,8 +413,14 @@ module.exports = (app, token) => {
                     if(fs.existsSync(`${folder}/${process.env.INFORMATIONS_FILENAME}`)){
                         let informations = JSON.parse(fs.readFileSync(`${folder}/${process.env.INFORMATIONS_FILENAME}`,"utf-8"));
                         if ("state" in informations && informations.state === "downloaded") {
-                            let details = JSON.parse(fs.readFileSync(`${folder}/details.json`,"utf-8"));
-                            games.push(details);
+                            const gamePath = findGamePath(folder);
+                            if(gamePath !== null){
+                                let details = JSON.parse(fs.readFileSync(`${folder}/details.json`,"utf-8"));
+                                games.push({
+                                    ...details,
+                                    "path": gamePath
+                                });
+                            }
                         }
                     }
                 });

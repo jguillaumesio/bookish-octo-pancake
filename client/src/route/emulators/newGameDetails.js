@@ -72,6 +72,9 @@ export const NewGameDetailsIndex = () => {
             if("type" in response && response.type === "success"){
                 setGameDetails({...game, ...response.value});
             }
+            else if ("type" in response && response.type === "error"){
+                navigate("/emulators/new");
+            }
         }catch(e){
             console.log(e);
         }
@@ -166,24 +169,24 @@ export const NewGameDetailsIndex = () => {
         },
         {
             ...buttons.right,
-            label: "Galerie d'image",
+            display: false,
             args: {"move": "right"},
             callback: handleMove
         },
         {
             ...buttons.left,
-            label: "Galerie d'image",
+            display: false,
             args: {"move": "left"},
             callback: handleMove
         },
         {
             ...buttons.top,
-            label: "Se déplacer",
+            display: false,
             args: {setter: setSelectedGameDownload, length: game.games.length, move: "top"},
             callback: containers[selectedContainer].onMove ?? (() => {})
         },{
             ...buttons.bottom,
-            label: "Se déplacer",
+            display: false,
             args: {setter: setSelectedGameDownload, length: game.games.length, move: "down"},
             callback: containers[selectedContainer].onMove ?? (() => {})
         }, {

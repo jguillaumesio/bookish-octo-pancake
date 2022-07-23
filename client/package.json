@@ -1,6 +1,10 @@
 {
   "name": "station",
   "version": "0.1.0",
+  "description": "Interactive software to play games, listen to music, or even watch tv !",
+  "author": "Jacopin Guillaume",
+  "license": "MIT",
+  "main": "./src/main.js",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.7.1",
@@ -16,6 +20,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-hotkeys": "^2.0.0",
+    "react-material-music-player": "^1.1.7",
     "react-router-dom": "^6.2.1",
     "react-scripts": "5.0.0",
     "react-simple-keyboard": "^3.4.171",
@@ -24,7 +29,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "set BROWSER=none && react-scripts start",
+    "electron-start": "electron .",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -46,5 +52,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "electron": "^19.0.8"
   }
 }

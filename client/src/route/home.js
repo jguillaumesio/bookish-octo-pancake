@@ -50,7 +50,7 @@ export const HomeIndex = () => {
         responsive: true,
         fluid: true,
         sources: [{
-            src: "https://networkbest.ru.com/cdn/premium123/chunks.m3u8?|Referer=https://player.licenses4.me/",
+            src: "https://srv.vhls.ru.com/cdn/premium121/tracks-v1a1/mono.m3u8", // 2, 3, 7, 10, (8,14)
             type: 'application/x-mpegURL'
         }]
     };
@@ -71,8 +71,7 @@ export const HomeIndex = () => {
     return (
         <div className='container' >
             <div className='content'>
-                {/*<VideoJS options={videoJsOptions} onReady={handlePlayerReady} />*/}
-                <VisualKeyboard/>
+                <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
             </div>
         </div>
     )

@@ -6,7 +6,7 @@ import {buttons} from "../utils/pad";
 
 export const GameCaroussel = (props) => {
 
-    let {games} = props;
+    let {games, onEnter, onBackspace} = props;
     const [width, margin, transition] = [300, 20, 500];
     const windowDimensions = useWindowDimensions();
     const [selected, setSelected] = useState(null);
@@ -25,12 +25,12 @@ export const GameCaroussel = (props) => {
     const keyEvents = [
         {
             ...buttons.left,
-            label:"Se déplacer",
+            display: false,
             args:{"increment":1},
             callback: ({increment}) => handleMoves(increment)
         }, {
             ...buttons.right,
-            label:"Se déplacer",
+            display: false,
             args:{"increment":-1},
             callback: ({increment}) => handleMoves(increment)
         },
@@ -38,7 +38,8 @@ export const GameCaroussel = (props) => {
             ...buttons.cross,
             label:"Démarrer",
             callback: () => {
-                console.log("toLaunch");
+                console.log(selected);
+                onEnter(selected);
             }
         }, {
             ...buttons.circle,
@@ -52,11 +53,11 @@ export const GameCaroussel = (props) => {
     useEffect(() => {
         setSelected(games[Math.floor(games.length / 2)]);
         setKeys(keyEvents);
-    }, [games, setKeys, keyEvents]);
+    }, [games]);
 
     useEffect(() => {
         setKeys(keyEvents);
-    },[selected, setKeys, keyEvents]);
+    },[selected]);
 
     const handleItemStyle = (item) => {
         let style = {

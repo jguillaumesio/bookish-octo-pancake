@@ -239,6 +239,7 @@ module.exports = () => {
         delete downloads[directory];
 
     }
+
     module.launchGame = async (gamePath, socket) => {
         const emulatorPath = path.join(appRoot, "public/emulators/pcsx2/pcsx2.exe");
         const command = `Start /B ${emulatorPath} "${gamePath}" --fullscreen`;
@@ -269,6 +270,7 @@ module.exports = () => {
 
     module.restartDownload = async (url, directory, name, socket, downloads) => {
         const cookie = await connectToRepository();
+        directory = findDirectoryByLetter(directory);
         const content = JSON.parse(fs.readFileSync(`${directory}/${process.env.INFORMATIONS_FILENAME}`, 'utf8'));
         let threads = content["chunks"].map((chunk,i) => {
             const actualSizeInBytes = fs.statSync(`${directory}/game${i + 1}.zip`)?.size;

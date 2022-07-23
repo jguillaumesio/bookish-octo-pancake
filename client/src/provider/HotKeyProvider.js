@@ -24,6 +24,14 @@ export const HotKeyProvider = (props) => {
     //TODO https://developer.mozilla.org/en-US/docs/Games/Techniques/Controls_Gamepad_API
     useEffect(() => {
         window.addEventListener('keydown', listener);
+        window.addEventListener("gamepadconnected", function(e) {
+            var gp = navigator.getGamepads()[e.gamepad.index];
+            console.log(gp.id)
+            setInterval(function(){
+                let isPressed = gp.buttons.findIndex(e => e.pressed);
+                console.log(isPressed);
+            }, 100)
+        });
         return () => {
             window.removeEventListener('keydown', listener);
         }

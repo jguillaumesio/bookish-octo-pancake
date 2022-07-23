@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import reportWebVitals from './reportWebVitals';
 import {BrowserRouter, Route, Routes} from "react-router-dom";
-import {HomeIndex, GameListIndex, NewGameListIndex, DownloadListIndex, NewGameDetailsIndex} from "./route";
+import {HomeIndex, ErrorIndex, MusicIndex, GameListIndex, NewGameListIndex, DownloadListIndex, NewGameDetailsIndex} from "./route";
 import {GlobalProvider} from "./provider/GlobalProvider";
 
 ReactDOM.render(
@@ -18,6 +18,8 @@ ReactDOM.render(
                     </Route>
                     <Route path="downloads" element={<DownloadListIndex breadCrumb={["Home","Downloads"]}/>}/>
                 </Route>
+                <Route path="music" element={<MusicIndex breadCrumb={["Musique"]}/>}/>
+                <Route path="error" element={<ErrorIndex breadCrumb={["Erreur"]}/>}/>
             </Route>
         </Routes>
     </BrowserRouter>,

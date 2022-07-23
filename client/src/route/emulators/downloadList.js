@@ -9,24 +9,34 @@ import GameService from "../../service/game.service";
 
 const useStyle = makeStyles({
     'container':{
+        flexDirection:"column",
         display:"flex",
         flex:1,
         margin:"8px 0 0 0",
-        backgroundColor:"#131313",
         borderRadius:"20px",
         overflow:"hidden"
     },
     'selectedContainer':{
         margin:"4px 4px 0 4px !important",
         border:"1px solid #485e6d",
-    }
+    },
+    'gamesContainer':{
+        width:"100%",
+        flex:"1",
+        backgroundColor:"#131313",
+        flexDirection:"column",
+        justifyContent:"flex-start",
+        display:"flex",
+        boxSizing:'border-box',
+        margin:'5px 0 0 0'}
 })
 
 export const DownloadListIndex = ({breadCrumb}) => {
 
     const classes = useStyle();
-    const navigate = useNavigate();
-    const [games, _setGames] = useState([]);
+    //const navigate = useNavigate();
+    const [games, setGames] = useState([]);
+    const [downloadsToResume, _setDownloadsToResume] = useState([]);
     const [selectedGameIndex, setSelectedGameIndex] = useState(null);
     const [setKeys] = React.useContext(KeyContext);
 
@@ -38,46 +48,57 @@ export const DownloadListIndex = ({breadCrumb}) => {
         });
     }
 
-    const setGames = newGames => {
-        if(selectedGameIndex === null && newGames.length > 0){
+    const setDownloadsToResume = games => {
+        if(selectedGameIndex === null && games.length > 0){
             setSelectedGameIndex(0);
         }
-        else if(selectedGameIndex > newGames.length){
-            let index = newGames.findIndex(g => g.name === games[selectedGameIndex]);
+        else if(selectedGameIndex > games.length){
+            let index = downloadsToResume.findIndex(g => g.name === downloadsToResume[selectedGameIndex]);
             index = (index === -1) ? 0 : index;
             setSelectedGameIndex(index);
         }
-        _setGames(newGames);
+        _setDownloadsToResume(games);
     }
 
-    useEffect(() => {
+    const restartDownload = (url, directory, name) => {
+        GameService.restartDownload(url, directory, name, console.log);
+        const game = downloadsToResume.find(e => e.name === name);
+        setDownloadsToResume(downloadsToResume.filter(e => e !== game));
+    }
+
+    useEffect(async () => {
         setKeys(keyEvents);
-        GameService.downloadList(setGames);
+        await GameService.downloadList(setGames);
+        const result = await GameService.downloadsToResume().then(res => res.data);
+        if("type" in result && result.type === "success"){
+            setDownloadsToResume(result.value);
+        }
     },[]);
 
     useEffect(() => {
         setKeys(keyEvents);
-    },[games, selectedGameIndex])
+    },[games, downloadsToResume, selectedGameIndex])
 
     const keyEvents = [
         {
             ...buttons.bottom,
-            label:"Se déplacer",
-            args: {"move": "down", "setter": setSelectedGameIndex, "length": games.length},
+            display: false,
+            args: {"move": "down", "setter": setDownloadsToResume, "length": downloadsToResume.length},
             callback: handleIndexSelection
         },
         {
             ...buttons.top,
-            label:"Se déplacer",
-            args: {"move": "up", "setter": setSelectedGameIndex, "length": games.length},
+            display: false,
+            args: {"move": "up", "setter": setDownloadsToResume, "length": downloadsToResume.length},
             callback: handleIndexSelection
         },
-        {
+        ... (downloadsToResume.length > 0 && selectedGameIndex !== null) ?
+            [{
             ...buttons.cross,
-            label: "Voir",
-            args:{"url":"","directory":"", "name":""},
-            callback: (url, directory, name) => GameService.restartDownload(url, directory, name, console.log)
-        }
+                label: "Reprendre le téléchargement",
+                args:{"url":downloadsToResume[selectedGameIndex].games[0].url,"directory":downloadsToResume[selectedGameIndex].directory, "name":downloadsToResume[selectedGameIndex].name},
+                callback: ({url, directory, name}) => restartDownload(url, directory, name)
+            }] : []
     ]
 
     return (
@@ -87,14 +108,25 @@ export const DownloadListIndex = ({breadCrumb}) => {
                     <TopBar links={[]} breadCrumb={breadCrumb}/>
                 </div>
                 <div className={classes.container}>
-                    <div style={{ width:"100%", flex:"1", flexDirection:"column", justifyContent:"flex-start", display:"flex", boxSizing:'border-box', margin:'0'}}>
+                    <div className={classes.gamesContainer}>
                         {games.map((e, index) =>
+                            <div key={index} style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
+                                <div style={{ height:'100%', display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                    <img src={e.picture.url} alt={e.name} style={{ maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
+                                    <h3 style={{ padding:'20px' }}>{e.name}</h3>
+                                </div>
+                                <h2 style={{ padding:'10px' }}>{e?.percentage ?? 0}%</h2>
+                            </div>
+                        )}
+                    </div>
+                    <div className={classes.gamesContainer}>
+                        {downloadsToResume.map((e, index) =>
                             <div key={index} style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
                                 <div style={{ height:'100%', display:'flex', flexDirection:'row', alignItems:'center'}}>
                                     <img src={e.picture.url} alt={e.name} style={{ border:`${(index === selectedGameIndex) ? "2px solid white" : "none"}`, maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
                                     <h3 style={{ padding:'20px' }}>{e.name}</h3>
                                 </div>
-                                <h2 style={{ padding:'10px' }}>{e.percentage}%</h2>
+                                {/*<h2 style={{ padding:'10px' }}>{e.percentage}%</h2>*/}
                             </div>
                         )}
                     </div>
