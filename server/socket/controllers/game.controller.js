@@ -43,7 +43,7 @@ const downloadChunk = async (url, thread, downloads, directory, index) => {
     }).then(response => response);
     return new Promise((resolve, reject) => {
         tracking = setInterval(() => {
-            downloads[directory]["downloadedChunksSize"][index] = writer.bytesWritten;
+            downloads[directory]["downloadedChunksSize"][index] = (("alreadyDownloadedByChunks" in downloads[directory]) ? downloads[directory]["alreadyDownloadedByChunks"][index] : 0) + writer.bytesWritten;
         }, 1000);
         response.data.pipe(writer);
         let error = null;
@@ -150,7 +150,7 @@ module.exports = () => {
             values = values.map( download => {
                 return {
                     ...download,
-                    "percentage": (download["downloadedChunksSize"].reduce((a,b) => a+b, 0) / download["totalSize"] * 100).toFixed(0)
+                    "percentage": (download["downloadedChunksSize"].reduce((a,b) => a+b, 0) / (download["totalSize"] - download["alreadyDownloadedSize"] ?? 0) * 100).toFixed(0)
                 }
             });
             socket.emit("downloadList", JSON.stringify(values));
@@ -176,7 +176,8 @@ module.exports = () => {
             "name": name,
             "state": "downloading",
             "url": url,
-            "chunks":threads.map(c => { return {"start": c.start, "end": c.end}})
+            "chunks":threads.map(c => { return {"start": c.start, "end": c.end}}),
+            "total":total
         }));
         socket.emit("downloadResponse",JSON.stringify({"type":"success","message":`${name} has started downloading !`}));
         const details = _getGameDetails(directory);
@@ -295,8 +296,10 @@ module.exports = () => {
             const threadsToDownload = threads.filter(thread => thread.start < thread.end);
             let seconds = 0;
             downloads[directory] = {
-                "totalSize": threadsToDownload.reduce((a,b) => a + (b.end - b.start), 0), //byte size
+                "totalSize": content.total, //threadsToDownload.reduce((a,b) => a + (b.end - b.start), 0), //byte size
                 "downloadedChunksSize": threadsToDownload.map(e => e.downloaded),
+                "alreadyDownloadedByChunks": threadsToDownload.map(e => e.downloaded),
+                "alreadyDownloadedSize": threads.reduce((a,b) => a+b.downloaded, 0),
                 "name": details.name,
                 "time": seconds,
                 "picture": details.cover ?? null,

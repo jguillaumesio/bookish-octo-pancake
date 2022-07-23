@@ -13,8 +13,6 @@ const useStyle = makeStyles({
         display:"flex",
         flex:1,
         margin:"8px 0 0 0",
-        borderRadius:"20px",
-        overflow:"hidden"
     },
     'selectedContainer':{
         margin:"4px 4px 0 4px !important",
@@ -28,7 +26,7 @@ const useStyle = makeStyles({
         justifyContent:"flex-start",
         display:"flex",
         boxSizing:'border-box',
-        margin:'5px 0 0 0'}
+        margin:'10px 0'}
 })
 
 export const DownloadListIndex = ({breadCrumb}) => {
@@ -49,10 +47,11 @@ export const DownloadListIndex = ({breadCrumb}) => {
     }
 
     const setDownloadsToResume = games => {
+        console.log(games);
         if(selectedGameIndex === null && games.length > 0){
             setSelectedGameIndex(0);
         }
-        else if(selectedGameIndex > games.length){
+        else if(selectedGameIndex > games.length - 1){
             let index = downloadsToResume.findIndex(g => g.name === downloadsToResume[selectedGameIndex]);
             index = (index === -1) ? 0 : index;
             setSelectedGameIndex(index);
@@ -77,26 +76,26 @@ export const DownloadListIndex = ({breadCrumb}) => {
 
     useEffect(() => {
         setKeys(keyEvents);
-    },[games, downloadsToResume, selectedGameIndex])
+    },[downloadsToResume, selectedGameIndex])
 
     const keyEvents = [
         {
             ...buttons.bottom,
             display: false,
-            args: {"move": "down", "setter": setDownloadsToResume, "length": downloadsToResume.length},
+            args: {"move": "down", "setter": setSelectedGameIndex, "length": downloadsToResume.length},
             callback: handleIndexSelection
         },
         {
             ...buttons.top,
             display: false,
-            args: {"move": "up", "setter": setDownloadsToResume, "length": downloadsToResume.length},
+            args: {"move": "up", "setter": setSelectedGameIndex, "length": downloadsToResume.length},
             callback: handleIndexSelection
         },
         ... (downloadsToResume.length > 0 && selectedGameIndex !== null) ?
             [{
             ...buttons.cross,
                 label: "Reprendre le téléchargement",
-                args:{"url":downloadsToResume[selectedGameIndex].games[0].url,"directory":downloadsToResume[selectedGameIndex].directory, "name":downloadsToResume[selectedGameIndex].name},
+                args:{"url":downloadsToResume[selectedGameIndex]?.games[0]?.url,"directory":downloadsToResume[selectedGameIndex]?.directory, "name":downloadsToResume[selectedGameIndex]?.name},
                 callback: ({url, directory, name}) => restartDownload(url, directory, name)
             }] : []
     ]
@@ -108,6 +107,7 @@ export const DownloadListIndex = ({breadCrumb}) => {
                     <TopBar links={[]} breadCrumb={breadCrumb}/>
                 </div>
                 <div className={classes.container}>
+                    <h3 style={{ color:"grey"}}>Téléchargement(s) en cours</h3>
                     <div className={classes.gamesContainer}>
                         {games.map((e, index) =>
                             <div key={index} style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
@@ -119,17 +119,22 @@ export const DownloadListIndex = ({breadCrumb}) => {
                             </div>
                         )}
                     </div>
-                    <div className={classes.gamesContainer}>
-                        {downloadsToResume.map((e, index) =>
-                            <div key={index} style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
-                                <div style={{ height:'100%', display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                    <img src={e.picture.url} alt={e.name} style={{ border:`${(index === selectedGameIndex) ? "2px solid white" : "none"}`, maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
-                                    <h3 style={{ padding:'20px' }}>{e.name}</h3>
-                                </div>
-                                {/*<h2 style={{ padding:'10px' }}>{e.percentage}%</h2>*/}
+                    { downloadsToResume.length > 0 &&
+                        <div>
+                            <h3 style={{ color:"grey"}}>Téléchargement(s) en pause</h3>
+                            <div className={classes.gamesContainer}>
+                                {downloadsToResume.map((e, index) =>
+                                    <div key={index} style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
+                                        <div style={{ height:'100%', display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                            <img src={e.picture.url} alt={e.name} style={{ border:`${(index === selectedGameIndex) ? "2px solid white" : "none"}`, maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
+                                            <h3 style={{ padding:'20px' }}>{e.name}</h3>
+                                        </div>
+                                        {/*<h2 style={{ padding:'10px' }}>{e.percentage}%</h2>*/}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

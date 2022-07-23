@@ -6,7 +6,6 @@
 - create installation page
 - remove args, as value changes with useEffect
 - add tnt tv m3u8
-- wait until react start to electron start
 - looks multiple input at the same time for leaving emulator
 - automatically relaunch stopped download
 - percentage of restartDownload
