@@ -19,6 +19,7 @@
     "axios": "^0.25.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-gamepad": "github:SBRK/react-gamepad",
     "react-hotkeys": "^2.0.0",
     "react-material-music-player": "^1.1.7",
     "react-router-dom": "^6.2.1",
