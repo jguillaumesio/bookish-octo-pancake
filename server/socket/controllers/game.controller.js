@@ -150,7 +150,7 @@ module.exports = () => {
             values = values.map( download => {
                 return {
                     ...download,
-                    "percentage": (download["downloadedChunksSize"].reduce((a,b) => a+b, 0) / (download["totalSize"] - download["alreadyDownloadedSize"] ?? 0) * 100).toFixed(0)
+                    "percentage": (download["downloadedChunksSize"].reduce((a,b) => a+b, 0) / (download["totalSize"] - ("alreadyDownloadedSize" in download ? download["alreadyDownloadedSize"] : 0)) * 100).toFixed(0)
                 }
             });
             socket.emit("downloadList", JSON.stringify(values));

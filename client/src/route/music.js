@@ -1,13 +1,13 @@
 import MusicDataService from "../service/music.service";
 import {useContext, useEffect, useState} from "react";
-import Player from 'react-material-music-player'
-import { Track, PlayerInterface } from 'react-material-music-player'
 import * as React from "react";
 import {makeStyles} from "@mui/styles";
 import {buttons} from "../utils/pad";
 import {KeyboardContext} from "../component/VisualKeyboard";
 import {KeyContext} from "../provider/HotKeyProvider";
 import {TextMusicList} from "../component/TextMusicList";
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
 
 const useStyle = makeStyles({
     'genreContainer':{
@@ -31,46 +31,23 @@ const useStyle = makeStyles({
 export const MusicIndex = () => {
 
     const classes = useStyle();
-    const [currentPlaylist, setCurrentPlaylist] = useState([]);
     const [searchedMusics, setSearchedMusics] = useState([]);
     const [selectedSearchedMusicIndex, setSelectedSearchedMusicIndex] = useState(0);
     const [isSearching, setIsSearching] = useState(0);
     const [setKeys] = React.useContext(KeyContext);
     const [setIsOpen, setKeyboardCallback, setKeyboardCloseCallback] = useContext(KeyboardContext);
+    const [playlist, setPlaylist] = useState([]);
 
     useEffect(() => {
-        playPlaylist([]);
+        setKeys(keyEvents)
     },[]);
 
     useEffect(() => {
         setKeys(keyEvents);
-        //const track = createTrack("cabeza","Oboy","");
-        //playPlaylist([track]);
-    },[setSelectedSearchedMusicIndex, setSearchedMusics, selectedSearchedMusicIndex, searchedMusics]);
+    },[selectedSearchedMusicIndex, searchedMusics]);
 
-    const playPlaylist = playlist => {
-        PlayerInterface.play(playlist);
-    }
-
-    const addToPlaylist = (music) => {
-        const track = createTrack(music["tit_art"], music.url);
-        PlayerInterface.playLater([track]);
-    }
-
-    const addNextMusic = track => {
-        PlayerInterface.playNext(track);
-    }
-
-    const createTrack = (title_artist, source) => {
-        console.log(title_artist)
-        const [title, artist] = title_artist.split(" - ");
-        return new Track(
-            Date.now().toString(),
-            null,
-            title,
-            artist,
-            "https://slider.kz/download/-2001651955_68651955/148/cs3-4v4/s/v1/acmp/BKgwi0fdg9gnvFyrKPF75X2bcWXm2nNge-_8zcWYYHCbdz2Mdp6qM9ppS5L3RrKAeUKNs-zjxLoOioYrU_G1acdjpL4rLJO-3MEGOM686KuG5d7VyAJ2m82EffWZYC2RGHp9N5e-5bwPTHHmjGUldaBTSnQzE-zRH_FXYC5lFdzqcKr1gQ/OBOY - Cabeza.mp3?extra=null"
-        );
+    const addToPlaylist = music => {
+        setPlaylist(playlist => [...playlist, music.stream])
     }
 
     const searchFiltering = async (search, setSearchedMusics, setSelectedSearchedMusicIndex, setIsSearching) => {
@@ -78,8 +55,8 @@ export const MusicIndex = () => {
         const response = await MusicDataService.search(search);
         if("type" in response.data && response.data.type === "success"){
             setSelectedSearchedMusicIndex(0);
-            setSearchedMusics(response.data.value);
             setIsSearching(0);
+            setSearchedMusics(response.data.value);
         }
     }
 
@@ -102,6 +79,7 @@ export const MusicIndex = () => {
     const keyEvents = [
         {
             ...buttons.bottom,
+            continuous: true,
             display: false,
             label:"Se déplacer",
             args: {"move": "down", "setter": setSelectedSearchedMusicIndex, "length": searchedMusics.length},
@@ -109,6 +87,7 @@ export const MusicIndex = () => {
         },
         {
             ...buttons.top,
+            continuous: true,
             display: false,
             label:"Se déplacer",
             args: {"move": "up", "setter": setSelectedSearchedMusicIndex, "length": searchedMusics.length},
@@ -139,7 +118,11 @@ export const MusicIndex = () => {
                         <TextMusicList offset={selectedSearchedMusicIndex} isContainerSelected={true} limit={12} musics={searchedMusics}/>
                     </div>
                 </div>
-                <Player sx={{ "position":"relative", "borderRadius":"0px"}}/>
+                <AudioPlayer
+                    autoPlay
+                    src={playlist[0]}
+                    onEnded={_ => setPlaylist(e => (e.length === 1) ? [] : e.slice(1, e.length))}
+                />
             </div>
         </div>
     )

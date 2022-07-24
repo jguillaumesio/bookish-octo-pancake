@@ -181,6 +181,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
         },
         {
             ...buttons.right,
+            continuous: true,
             display: false,
             label:"Se déplacer",
             args: {"move": "right", "setSelectedContainer":setSelectedContainer},
@@ -188,6 +189,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
         },
         {
             ...buttons.left,
+            continuous: true,
             display: false,
             label:"Se déplacer",
             args: {"move": "left", "setSelectedContainer":setSelectedContainer},

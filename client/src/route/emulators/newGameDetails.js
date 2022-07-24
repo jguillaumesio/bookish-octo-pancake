@@ -169,23 +169,27 @@ export const NewGameDetailsIndex = () => {
         },
         {
             ...buttons.right,
+            continuous: true,
             display: false,
             args: {"move": "right"},
             callback: handleMove
         },
         {
             ...buttons.left,
+            continuous: true,
             display: false,
             args: {"move": "left"},
             callback: handleMove
         },
         {
             ...buttons.top,
+            continuous: true,
             display: false,
             args: {setter: setSelectedGameDownload, length: game.games.length, move: "top"},
             callback: containers[selectedContainer].onMove ?? (() => {})
         },{
             ...buttons.bottom,
+            continuous: true,
             display: false,
             args: {setter: setSelectedGameDownload, length: game.games.length, move: "down"},
             callback: containers[selectedContainer].onMove ?? (() => {})
@@ -226,7 +230,6 @@ export const NewGameDetailsIndex = () => {
                     { openAvailableDownloads === -1
                         ? <div style={{ display:"flex", width: "100%", padding:"20px", flex:"1", flexDirection:"column", alignItems:"center", justifyContent:"center"}}>
                             <CircularProgress/>
-                            <h1>Waiting for download to start !</h1>
                           </div>
                         : <List sx={{pt: 0}}>
                             {game.games.map((element, index) => (

@@ -9,6 +9,7 @@
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
+    "@iconify/icons-mdi": "^1.2.27",
     "@mui/icons-material": "^5.8.4",
     "@mui/lab": "^5.0.0-alpha.85",
     "@mui/material": "^5.4.1",
@@ -20,8 +21,8 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-gamepad": "github:SBRK/react-gamepad",
+    "react-h5-audio-player": "^3.8.4",
     "react-hotkeys": "^2.0.0",
-    "react-material-music-player": "^1.1.7",
     "react-router-dom": "^6.2.1",
     "react-scripts": "5.0.0",
     "react-simple-keyboard": "^3.4.171",

@@ -264,13 +264,16 @@ module.exports = (app, token, downloads) => {
             token = (!token) ? await authenticate(token) : token;
             let games = await _getNewGameList(token);
             for(const game of games.value){
-                const informationFilePath = `${findDirectoryByLetter(game.directory)}/${process.env.INFORMATIONS_FILENAME}`;
-                if( !(game.directory in downloads) && fs.existsSync(informationFilePath)){
+                const gameDirectory = findDirectoryByLetter(game.directory).replaceAll(new RegExp(/\\/g), "/");
+                const informationFilePath = `${gameDirectory}/${process.env.INFORMATIONS_FILENAME}`;
+                if( !(gameDirectory in downloads) && fs.existsSync(informationFilePath)){
                     const information = JSON.parse(fs.readFileSync(informationFilePath, "utf-8"));
                     const details = JSON.parse(fs.readFileSync(`${findDirectoryByLetter(game.directory)}/details.json`, "utf-8"));
+                    const downloadedSize = information["chunks"].map((chunk,i) => fs.statSync(`${gameDirectory}/game${i + 1}.zip`)?.size).reduce((a, b) => a + b, 0);
                     if("state" in information && information.state === "downloading"){
                         result.push({
                             ...game,
+                            "percentage": (downloadedSize / information.total * 100).toFixed(0),
                             "name": details.name,
                             "picture": details.cover ?? null,
                             "games": game.games.filter(e => e.url === information.url)
@@ -349,7 +352,6 @@ module.exports = (app, token, downloads) => {
         }
         res.send(error);
     }
-
     module.refreshNewGameList = async (req,res) => {
         try{
             token = (!token) ? await authenticate(token) : token;

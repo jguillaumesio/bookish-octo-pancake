@@ -80,12 +80,14 @@ export const DownloadListIndex = ({breadCrumb}) => {
     const keyEvents = [
         {
             ...buttons.bottom,
+            continuous: true,
             display: false,
             args: {"move": "down", "setter": setSelectedGameIndex, "length": downloadsToResume.length},
             callback: handleIndexSelection
         },
         {
             ...buttons.top,
+            continuous: true,
             display: false,
             args: {"move": "up", "setter": setSelectedGameIndex, "length": downloadsToResume.length},
             callback: handleIndexSelection
@@ -128,7 +130,7 @@ export const DownloadListIndex = ({breadCrumb}) => {
                                             <img src={e.picture.url} alt={e.name} className={`${(selectedGameIndex === index) ? classes.selectedGame : ''}`} style={{ border: "2px solid transparent", maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
                                             <h3 style={{ padding:'20px' }}>{e.name}</h3>
                                         </div>
-                                        {/*<h2 style={{ padding:'10px' }}>{e.percentage}%</h2>*/}
+                                        <h2 style={{ padding:'10px' }}>{e.percentage}%</h2>
                                     </div>
                                 )}
                             </div>

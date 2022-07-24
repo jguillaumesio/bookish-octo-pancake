@@ -99,23 +99,27 @@ export const VisualKeyboard = (props) => {
     const keyEvents = [
         {
             ...buttons.right,
+            continuous: true,
             display: false,
             args: {"move": "right"},
             callback: handleMove
         },
         {
             ...buttons.left,
+            continuous: true,
             display: false,
             args: {"move": "left"},
             callback: handleMove
         },
         {
             ...buttons.top,
+            continuous: true,
             display: false,
             args: {"move": "top"},
             callback: handleMove
         },{
             ...buttons.bottom,
+            continuous: true,
             display: false,
             args: {"move": "bottom"},
             callback: handleMove

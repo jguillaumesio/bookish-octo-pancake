@@ -11,7 +11,7 @@ module.exports = (app) => {
                 value: [...musics].map(e => {
                     return {
                         ...e,
-                        "download":`https://slider.kz/download/${e.id}/${e.duration}/${e.url}/${e.tit_art}.mp3?extra=${e.extra}`
+                        "stream":`https://slider.kz/download/${e.id}/${e.duration}/${e.url}/${e.tit_art}.mp3?extra=${e.extra}`
                     }
                 })
             });

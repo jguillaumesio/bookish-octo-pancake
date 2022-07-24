@@ -26,10 +26,12 @@ export const GameCaroussel = (props) => {
         {
             ...buttons.left,
             display: false,
+            continuous: true,
             args:{"increment":1},
             callback: ({increment}) => handleMoves(increment)
         }, {
             ...buttons.right,
+            continuous: true,
             display: false,
             args:{"increment":-1},
             callback: ({increment}) => handleMoves(increment)
