@@ -14,9 +14,8 @@ const useStyle = makeStyles({
         flex:1,
         margin:"8px 0 0 0",
     },
-    'selectedContainer':{
-        margin:"4px 4px 0 4px !important",
-        border:"1px solid #485e6d",
+    'selectedGame':{
+        border:"2px solid white !important"
     },
     'gamesContainer':{
         width:"100%",
@@ -120,13 +119,13 @@ export const DownloadListIndex = ({breadCrumb}) => {
                         )}
                     </div>
                     { downloadsToResume.length > 0 &&
-                        <div>
+                        <div style={{ display:"flex", flexDirection:"column", flex:1}}>
                             <h3 style={{ color:"grey"}}>Téléchargement(s) en pause</h3>
                             <div className={classes.gamesContainer}>
                                 {downloadsToResume.map((e, index) =>
                                     <div key={index} style={{ display:'flex', height:'20%', color:'grey', flexDirection:'row', justifyContent:"space-between", alignItems:'center', padding:'10px'}}>
                                         <div style={{ height:'100%', display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                            <img src={e.picture.url} alt={e.name} style={{ border:`${(index === selectedGameIndex) ? "2px solid white" : "none"}`, maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
+                                            <img src={e.picture.url} alt={e.name} className={`${(selectedGameIndex === index) ? classes.selectedGame : ''}`} style={{ border: "2px solid transparent", maxHeight:"100%", minHeight:"100%", overflow:'hidden', borderRadius:'10px'}}/>
                                             <h3 style={{ padding:'20px' }}>{e.name}</h3>
                                         </div>
                                         {/*<h2 style={{ padding:'10px' }}>{e.percentage}%</h2>*/}

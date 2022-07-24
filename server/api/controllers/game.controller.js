@@ -1,6 +1,6 @@
 const fs = require("fs");
 const axios = require("axios");
-const {filterByArray, stringsSimilarityPercentage} = require("./../../utils");
+const {stringsSimilarityPercentage} = require("./../../utils");
 const path = require("path");
 const {PS2Repositories} = require("../../resources/games");
 const HTMLParser = require("node-html-parser");
@@ -30,6 +30,8 @@ const _igdbRequest = async (type, body, token) => {
             return response.data;
     });
 }
+
+const parseImageSize = url => url.replace(new RegExp(/(cover_small|screenshot_med|cover_big|logo_med|screenshot_big|screenshot_huge|thumb|micro|720p)/), "1080p");
 
 const _getNewGameList = async (token) => {
     try {
@@ -101,38 +103,51 @@ const _searchGameDetails = async (search, token) => {
     const searchArray = search.split(/ |-/).map((e,i) => search.split(/ |-/).slice(0,search.split(/ |-/).length - i).join(" "));
     let rawGames = [];
     for(const search of searchArray){
-        const result = await axios.get(`https://www.igdb.com/search_autocomplete_all?q=${search}`,{
+        const result = await axios.get(`https://www.igdb.com/advanced_search?d=1&f[type]=games&q=${search}&s=score&f[platforms.id_in]=8`,{
             headers:{
                 "x-requested-with": "XMLHttpRequest"
             }
-        }).then(response => (response.data["game_suggest"] ?? []));
+        }).then(response => (response.data ?? []));
         rawGames.push(...[...result].filter(e => !rawGames.includes(e.name)).map(e => e.name));
     }
-    rawGames = [...rawGames].filter(rawGame => filterByArray(rawGame, search)).map(game => {
+    rawGames = [...rawGames].map(game => {
         return {
             "name":game,
             "similarity": stringsSimilarityPercentage(game, search)
         }
     });
-    const searches = keepBestMatches(rawGames);
+    const maxSimilarity = (rawGames.reduce((a,b) => Math.max(a,b.similarity), 0));
+    const threshold = (maxSimilarity > 0.5) ? ((maxSimilarity > 0.75) ? ((maxSimilarity === 1) ?  0 : 0.1 ) : 0.2) : 0.5;
+    const searches = keepBestMatches(rawGames, threshold);
     if(rawGames.length > 0){
         try{
             const results = [];
             for(let searchName of searches.map(e => e.name)){
-                let data = await _igdbRequest("games", `fields category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${searchName}"*;`, token)
+                let data = await _igdbRequest("games", `fields alternative_names, category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${searchName}"*;`, token)
                 if([...data].length === 0){
-                    data = await _igdbRequest("games", `fields category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where name ~ *"${searchName}"*;`, token)
+                    data = await _igdbRequest("games", `fields alternative_names, category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where name ~ *"${searchName}"*;`, token)
                 }
-                results.push(...[...data].map(e => {
-                    return {
-                        ...e,
-                        "cover": {"url": e?.cover?.url?.replace("t_thumb", "t_cover_big")},
-                        "screenshots": e?.screenshots?.map(s => {
-                            return {...s, "url": s.url.replace("t_thumb", "t_original")}
-                        }),
-                        "similarity": stringsSimilarityPercentage(e.name, search)
+
+                for(const e of [...data]){
+                    if(!results.includes(e.name)){
+                        if ("alternative_names" in e && e["alternative_names"].length > 0) {
+                            const regex = new RegExp(/\(.*?\)/);
+                            let names = await _igdbRequest("alternative_names", `fields name; where id = (${e["alternative_names"].join(",")});`);
+                            names = names.map(e => e.name.replace(regex, "").trim());
+                            e["similarity"] = [e.name, ...names].reduce((a,b) => Math.max(stringsSimilarityPercentage(b, search), a), 0);
+                        }
+                        else{
+                            e["similarity"] = stringsSimilarityPercentage(e.name, search);
+                        }
+                        results.push({
+                            ...e,
+                            "cover": {"url": e?.cover?.url?.replace("t_thumb", "t_cover_big")},
+                            "screenshots": e?.screenshots?.map(s => {
+                                return {...s, "url": s.url.replace("t_thumb", "t_original")}
+                            })
+                        })
                     }
-                }).filter(e => !results.includes(e)))
+                }
             }
             return results;
         }catch(e){
@@ -149,10 +164,10 @@ const keepBestMatch = (matches) => {
     return matches.reduce((bestMatch, element) => (element.similarity > bestMatch.similarity) ? element : bestMatch, matches[0]);
 }
 
-const keepBestMatches = (matches, threesold = 0.1) => {
+const keepBestMatches = (matches, threshold = 0.1) => {
     if(matches.length > 0){
         const bestSimilarity = matches.reduce((bestMatch, element) => (element.similarity > bestMatch.similarity) ? element : bestMatch, matches[0]).similarity;
-        return matches.filter(e => e.similarity >= bestSimilarity - threesold);
+        return matches.filter(e => e.similarity >= bestSimilarity - threshold);
     }
     return [];
 }
@@ -289,7 +304,6 @@ module.exports = (app, token, downloads) => {
         }
         res.send(result);
     }
-
     module.generateAllDetails = async (req, res) => {
         token = (!token) ? await authenticate(token) : token;
         createAlphabetDirectory();
@@ -298,8 +312,13 @@ module.exports = (app, token, downloads) => {
         let error = [];
         for(const search of result.value){
             let game = {};
-            const detailPath = `${findDirectoryByLetter(search.games[0].directory)}/details.json`;
+            const detailPath = `${findDirectoryByLetter(search.directory)}/details.json`;
             try{
+                if(fs.existsSync(detailPath)){
+                    i++;
+                    console.log(`${i}/${result.value.length}`);
+                    continue;
+                }
                 const response = await _searchGameDetails(search.name ,token);
                 if(response.length > 0){
                     game = keepBestMatch(response);
@@ -309,12 +328,24 @@ module.exports = (app, token, downloads) => {
                     _createGameDetails(detailPath,game);
                 }
                 else{
-                    error.push(search.name);
+                    token = await authenticate(token);
+                    const response = await _searchGameDetails(search.name ,token);
+                    if(response.length > 0){
+                        game = keepBestMatch(response);
+                        if("involved_companies" in game){
+                            game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+                        }
+                        _createGameDetails(detailPath,game);
+                    }
+                    else{
+                        error.push(search.name);
+                    }
                 }
             }catch(e){
                 error.push(search.name);
             }
             i++;
+            console.log(`${i}/${result.value.length}`);
         }
         res.send(error);
     }

@@ -166,6 +166,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
         {
             ...buttons.bottom,
             display: false,
+            continuous: true,
             label:"Se déplacer",
             args: {"move": "down", "setSelectedGameIndex": setSelectedGameIndex, "games": getGames(), "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
             callback: selectedContainer.onMove
@@ -173,6 +174,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
         {
             ...buttons.top,
             display: false,
+            continuous: true,
             label:"Se déplacer",
             args: {"move": "up", "setSelectedGameIndex": setSelectedGameIndex, "games": getGames(), "setSelectedGenreIndex": setSelectedGenreIndex, "genres": genres},
             callback: selectedContainer.onMove
