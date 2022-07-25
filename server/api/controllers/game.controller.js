@@ -15,15 +15,15 @@ const authenticate = async () => {
     return response["access_token"];
 }
 
-const _igdbRequest = async (type, body, token) => {
-    token = (!token) ? await authenticate(token) : token;
+const _igdbRequest = async (type, body, igdbToken) => {
+    igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
     return await axios({
             url: `https://api.igdb.com/v4/${type}`,
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Client-ID': process.env.CLIENT_ID,
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${igdbToken}`,
             },
             data: body
         }).then(response => {
@@ -33,10 +33,10 @@ const _igdbRequest = async (type, body, token) => {
 
 const parseImageSize = url => url.replace(new RegExp(/(cover_small|screenshot_med|cover_big|logo_med|screenshot_big|screenshot_huge|thumb|micro|720p)/), "1080p");
 
-const _getNewGameList = async (token) => {
+const _getNewGameList = async (igdbToken) => {
     try {
         const gameListPath = `${gamesDirectory}/game_list.json`;
-        const games = (!fs.existsSync(gameListPath)) ? await _refreshNewGameList(token) : JSON.parse(fs.readFileSync(gameListPath, "utf-8"));
+        const games = (!fs.existsSync(gameListPath)) ? await _refreshNewGameList(igdbToken) : JSON.parse(fs.readFileSync(gameListPath, "utf-8"));
         return {
             type: "success",
             value: games
@@ -70,11 +70,11 @@ const _parseCompaniesLogo = companies => {
     return companies
 }
 
-const _findTag = async (id, typeId, token) => {
+const _findTag = async (id, typeId, igdbToken) => {
     const types = ["themes","genres","keywords",null,"player_perspectives"]
     if(typeId !== 3){
         try {
-            const data = await _igdbRequest(types[typeId], `fields name; where id = (${id});`, token);
+            const data = await _igdbRequest(types[typeId], `fields name; where id = (${id});`, igdbToken);
             return data.map(e => {return { ...e, "type": types[typeId]}});
         } catch (e) {
             return [];
@@ -83,11 +83,11 @@ const _findTag = async (id, typeId, token) => {
     return [];
 }
 
-const parseGameDetailsTag = async (tags, token) => {
+const parseGameDetailsTag = async (tags, igdbToken) => {
     const result = [];
     for (let i of tags.slice(0, process.env.MAX_TAGS_NUMBER)) {
         const binary = decimalTo32octetsBinary(i);
-        const tagsDetails = await _findTag(binaryToDecimal(binary.slice(4, 32).join("")), binaryToDecimal(binary.slice(0, 4).join("")), token);
+        const tagsDetails = await _findTag(binaryToDecimal(binary.slice(4, 32).join("")), binaryToDecimal(binary.slice(0, 4).join("")), igdbToken);
         result.push(...tagsDetails);
     }
     return result;
@@ -98,7 +98,7 @@ const correctNameDefault = (search) => {
     return search.replace(numberRegex,",");
 }
 
-const _searchGameDetails = async (search, token) => {
+const _searchGameDetails = async (search, igdbToken) => {
     search = correctNameDefault(search);
     const searchArray = search.split(/ |-/).map((e,i) => search.split(/ |-/).slice(0,search.split(/ |-/).length - i).join(" "));
     let rawGames = [];
@@ -123,9 +123,9 @@ const _searchGameDetails = async (search, token) => {
         try{
             const results = [];
             for(let searchName of searches.map(e => e.name)){
-                let data = await _igdbRequest("games", `fields alternative_names, category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${searchName}"*;`, token)
+                let data = await _igdbRequest("games", `fields alternative_names, category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where platforms = (8) & name ~ *"${searchName}"*;`, igdbToken)
                 if([...data].length === 0){
-                    data = await _igdbRequest("games", `fields alternative_names, category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where name ~ *"${searchName}"*;`, token)
+                    data = await _igdbRequest("games", `fields alternative_names, category, total_rating, rating, tags, involved_companies.company.name, involved_companies.company.logo.url, name, cover.url, screenshots.url, summary, videos.video_id; where name ~ *"${searchName}"*;`, igdbToken)
                 }
 
                 for(const e of [...data]){
@@ -256,13 +256,13 @@ const findGamePath = directory => {
     }
 }
 
-module.exports = (app, token, downloads) => {
+module.exports = (app, igdbToken, downloads) => {
     const module = {};
     module.downloadsToResume = async (req,res) => {
         try{
             const result = [];
-            token = (!token) ? await authenticate(token) : token;
-            let games = await _getNewGameList(token);
+            igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+            let games = await _getNewGameList(igdbToken);
             for(const game of games.value){
                 const gameDirectory = findDirectoryByLetter(game.directory).replaceAll(new RegExp(/\\/g), "/");
                 const informationFilePath = `${gameDirectory}/${process.env.INFORMATIONS_FILENAME}`;
@@ -296,8 +296,8 @@ module.exports = (app, token, downloads) => {
     }
     module.searchGameByName = async (req, res) => {
         const { search } = req.body;
-        token = (!token) ? await authenticate(token) : token;
-        let result = await _getNewGameList(token);
+        igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+        let result = await _getNewGameList(igdbToken);
         if("type" in result && result.type === "success"){
             result.value = result.value.filter(game =>
                 game.name.split(/ |-/).findIndex(partialName => stringsSimilarityPercentage(search.toLowerCase(), partialName.toLowerCase()) > 0.8) !== -1
@@ -308,9 +308,9 @@ module.exports = (app, token, downloads) => {
         res.send(result);
     }
     module.generateAllDetails = async (req, res) => {
-        token = (!token) ? await authenticate(token) : token;
+        igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
         createAlphabetDirectory();
-        const result = await _getNewGameList(token);
+        const result = await _getNewGameList(igdbToken);
         let i = 0;
         let error = [];
         for(const search of result.value){
@@ -322,7 +322,7 @@ module.exports = (app, token, downloads) => {
                     console.log(`${i}/${result.value.length}`);
                     continue;
                 }
-                const response = await _searchGameDetails(search.name ,token);
+                const response = await _searchGameDetails(search.name ,igdbToken);
                 if(response.length > 0){
                     game = keepBestMatch(response);
                     if("involved_companies" in game){
@@ -331,8 +331,8 @@ module.exports = (app, token, downloads) => {
                     _createGameDetails(detailPath,game);
                 }
                 else{
-                    token = await authenticate(token);
-                    const response = await _searchGameDetails(search.name ,token);
+                    igdbToken = await authenticate(igdbToken);
+                    const response = await _searchGameDetails(search.name ,igdbToken);
                     if(response.length > 0){
                         game = keepBestMatch(response);
                         if("involved_companies" in game){
@@ -354,8 +354,8 @@ module.exports = (app, token, downloads) => {
     }
     module.refreshNewGameList = async (req,res) => {
         try{
-            token = (!token) ? await authenticate(token) : token;
-            const games = await _refreshNewGameList(token);
+            igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+            const games = await _refreshNewGameList(igdbToken);
             res.send({
                 type:"success",
                 value: games
@@ -370,8 +370,8 @@ module.exports = (app, token, downloads) => {
     }
 
     module.getNewGameList = async (req,res) => {
-        token = (!token) ? await authenticate(token) : token;
-        const result = await _getNewGameList(token);
+        igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+        const result = await _getNewGameList(igdbToken);
         res.send(result);
     }
 
@@ -390,7 +390,7 @@ module.exports = (app, token, downloads) => {
                     "state": null
                 };
                 if("tags" in game && typeof game.tags[0] !== 'object'){
-                    game.tags = await parseGameDetailsTag(game.tags,token);
+                    game.tags = await parseGameDetailsTag(game.tags, igdbToken);
                     if("involved_companies" in game){
                         game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
                     }
@@ -405,12 +405,12 @@ module.exports = (app, token, downloads) => {
             }
         }
         else{
-            token = (!token) ? await authenticate(token) : token;
-            const response = await _searchGameDetails(search ,token);
+            igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+            const response = await _searchGameDetails(search ,igdbToken);
             if(response.length > 0){
                 game = keepBestMatch(response);
                 if("tags" in game){
-                    game.tags = await parseGameDetailsTag(game.tags,token);
+                    game.tags = await parseGameDetailsTag(game.tags, igdbToken);
                 }
                 if("involved_companies" in game){
                     game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
@@ -487,7 +487,7 @@ module.exports = (app, token, downloads) => {
         }
         else{
             try {
-                result = await _igdbRequest("genres",`fields name; sort id asc; limit 500;`, token);
+                result = await _igdbRequest("genres",`fields name; sort id asc; limit 500;`, igdbToken);
                 const writer = fs.createWriteStream(genresPath, {flags: 'w'});
                 writer.write(JSON.stringify(result));
                 res.send({
@@ -509,10 +509,10 @@ module.exports = (app, token, downloads) => {
         const { genres } = req.body;
         const igdbGames = [];
         let tempGames = [];
-        token = (!token) ? await authenticate(token) : token;
+        igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
         while( igdbGames.length === 0 || tempGames.length !== 0){
             try{
-                tempGames = await _igdbRequest("games",`fields name; where platforms = (8) & genres = (${genres.join(",")}); limit 50; offset ${igdbGames.length};`, token);
+                tempGames = await _igdbRequest("games",`fields name; where platforms = (8) & genres = (${genres.join(",")}); limit 50; offset ${igdbGames.length};`, igdbToken);
                 tempGames = tempGames.map(e => {
                     return {
                         ...e,
@@ -528,7 +528,7 @@ module.exports = (app, token, downloads) => {
             }
             igdbGames.push(...tempGames);
         }
-        const newGameList = await _getNewGameList(token);
+        const newGameList = await _getNewGameList(igdbToken);
         if(newGameList.type === "error"){
             res.send(newGameList);
             return;

@@ -15,7 +15,9 @@ const io = socketio(server, {
 
 global.appRoot = __dirname;
 
-let token = null;
+let igdbToken = null;
+let downloads = {};
+let spotifyToken = null;
 
 app.use(cors({
     origin: process.env.CLIENT_URL
@@ -24,11 +26,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 
-let downloads = {};
-
-require("./api/routes/music.route")(app);
-require("./api/routes/game.route")(app, token, downloads);
-require("./api/routes/installation.route")(app, token);
+require("./api/routes/music.route")(app, spotifyToken);
+require("./api/routes/game.route")(app, igdbToken, downloads);
+require("./api/routes/installation.route")(app, igdbToken);
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL);

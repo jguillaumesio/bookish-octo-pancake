@@ -3,6 +3,11 @@ import {useEffect} from "react";
 
 const useStyle = makeStyles({
     "item": {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems:'center',
+        maxHeight:'80px',
+        height:'80px',
         color: 'grey',
         cursor: 'pointer',
         fontWeight:"bold",
@@ -34,9 +39,12 @@ export const TextMusicList = (props) => {
     const classes = useStyle();
 
     return(
-        <div style={{ width:"100%", flex:"1", flexDirection:"column", justifyContent:"space-evenly", display:"flex", boxSizing:'border-box', padding:'0 20px', margin:'0'}}>
+        <div style={{ width:"100%", flex:"1", flexDirection:"column", alignItems:"flex-start", height:"100%", display:"flex", boxSizing:'border-box', padding:'0 20px', margin:'0'}}>
             {visibleMusics().map((music, index) => (
-                <p key={index} className={`${(isContainerSelected && selectedMusic === music) ? classes.selectedItem : ""} ${classes.item}`}>{music["tit_art"]}</p>
+                <div key={index} className={`${(isContainerSelected && selectedMusic === music) ? classes.selectedItem : ""} ${classes.item}`}>
+                    <img style={{ height:'100%', padding:'5px', width:'auto'}} src={music["cover"]} title={`${music["artist"]} - ${music["title"]}`}/>
+                    <span>{music["artist"]} - {music["title"]}</span>
+                </div>
             ))}
         </div>
     )

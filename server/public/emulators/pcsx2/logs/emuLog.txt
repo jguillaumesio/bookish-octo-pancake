@@ -6,7 +6,7 @@ Host Machine Init:
 	Physical RAM     =  16289 MB
 	CPU name         =  Intel(R) Core(TM) i7-4610M CPU @ 3.00GHz
 	Vendor/Model     =  GenuineIntel (stepping 03)
-	CPU speed        =  2.993 ghz (4 logical threads)
+	CPU speed        =  2.992 ghz (4 logical threads)
 	x86PType         =  Standard OEM
 	x86Flags         =  bfebfbff 7ffafbff
 	x86EFlags        =  2c100000
@@ -20,9 +20,9 @@ Loading plugins from C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\pu
 	Bound   GS: GSdx32-AVX2.dll [GSdx 20200506140834 (MSVC 19.25 AVX2/AVX2) 1.2.0]
 	Bound  PAD: LilyPad.dll [LilyPad (20200506140834) 0.12.1]
 	Bound SPU2: Spu2-X.dll [SPU2-X 20200506140834 2.0.0]
-(GameDB) 9858 games on record (loaded in 1173ms)
 	Bound CDVD: cdvdGigaherz.dll [cdvdGigaherz 20200506140834 0.11.0]
 	Bound  USB: USBnull.dll [USBnull Driver 20200506140834 0.7.0]
+(GameDB) 9858 games on record (loaded in 463ms)
 	Bound   FW: FWnull.dll [FWnull Driver 20200506140834 0.7.0]
 	Bound DEV9: DEV9null.dll [DEV9null Driver 20200506140834 0.5.0]
 Plugins loaded successfully.
@@ -49,7 +49,8 @@ CDVDiso Error: No filename specified.
 Closing plugins...
 	Closing SPU2
 	Closing PAD
-	Closing GS33.x GL context successfully created
+	Closing GS
+3.x GL context successfully created
 OpenGL information. GPU: Quadro K3100M/PCIe/SSE2. Vendor: NVIDIA Corporation. Driver: NVIDIA 392.68
 INFO: GL_ARB_sparse_texture is NOT SUPPORTED
 INFO: GL_ARB_sparse_texture2 is NOT SUPPORTED
@@ -66,22 +67,6 @@ INFO: GL_ARB_texture_barrier is available
 INFO: GL_ARB_get_texture_sub_image is available
 
 Current Renderer: OpenGL (Hardware renderer)
-Plugins closed successfully.
-Shutting down plugins...
-Available VRAM/RAM:3840MB for textures
-GSdx Lookup CRC:0
-GSdx Lookup CRC:0
-Delete 0 Shaders, 34 Programs, 28 Pipelines
-Plugins shutdown successfully.
-(pxActionEvent) CDVD plugin failed to open!(thread:EE Core)
-
-INFO: GL_ARB_clear_texture is available
-INFO: GL_ARB_multi_bind is available
-INFO: GL_ARB_direct_state_access is available
-INFO: GL_ARB_texture_barrier is available
-INFO: GL_ARB_get_texture_sub_image is available
-
-Current Renderer: OpenGL (Hardware renderer)
 Available VRAM/RAM:3840MB for textures
 GSdx Lookup CRC:0
 GSdx Lookup CRC:0
@@ -90,11 +75,5 @@ Plugins closed successfully.
 Shutting down plugins...
 Plugins shutdown successfully.
 (pxActionEvent) CDVD plugin failed to open!(thread:EE Core)
- textures
-GSdx Lookup CRC:0
-GSdx Lookup CRC:0
-Delete 0 Shaders, 34 Programs, 28 Pipelines
-Plugins closed successfully.
-Shutting down plugins...
-Plugins shutdown successfully.
-(pxActionEvent) CDVD plugin failed to open!(thread:EE Core)
+User-canceled plugin configuration after plugin initialization failure.  Plugins unloaded.
+(GameDB) Unloading...

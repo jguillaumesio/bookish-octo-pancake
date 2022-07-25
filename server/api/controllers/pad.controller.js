@@ -65,7 +65,7 @@ const installMsiSilently = async (exePath) => {
     }
 }
 
-module.exports = (app, token) => {
+module.exports = (app, igdbToken) => {
     const module = {};
     module.installBluetooth = async (req, res) => {
         //disable UAC

@@ -4,8 +4,9 @@
   "description": "Interactive software to play games, listen to music, or even watch tv !",
   "author": "Jacopin Guillaume",
   "license": "MIT",
-  "main": "./src/main.js",
+  "main": "main.js",
   "private": true,
+  "homepage":"./build/",
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
@@ -31,7 +32,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "set BROWSER=none && react-scripts start",
+    "start": "react-scripts start",
     "electron-start": "electron .",
     "build": "react-scripts build",
     "test": "react-scripts test",

@@ -8,18 +8,19 @@ import {KeyContext} from "../provider/HotKeyProvider";
 import {TextMusicList} from "../component/TextMusicList";
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
+import {useNavigate} from "react-router-dom";
 
 const useStyle = makeStyles({
     'genreContainer':{
-        backgroundColor:"#131313",
+        backgroundColor:"#151515",
         borderRadius:"20px",
         listStyleType:"none",
-        margin:"8px 8px 0 8px",
+        margin:"0 4px",
         color:"grey",
         display:"flex",
         flexDirection:"column",
         justifyContent:"space-evenly",
-        padding:"0 20px",
+        height:"100%",
         zIndex:1
     },
     'selectedContainer':{
@@ -31,12 +32,17 @@ const useStyle = makeStyles({
 export const MusicIndex = () => {
 
     const classes = useStyle();
+    const navigate = useNavigate();
     const [searchedMusics, setSearchedMusics] = useState([]);
     const [selectedSearchedMusicIndex, setSelectedSearchedMusicIndex] = useState(0);
     const [isSearching, setIsSearching] = useState(0);
     const [setKeys] = React.useContext(KeyContext);
     const [setIsOpen, setKeyboardCallback, setKeyboardCloseCallback] = useContext(KeyboardContext);
-    const [playlist, setPlaylist] = useState([]);
+    const [playlist, _setPlaylist] = useState([]);
+
+    const setPlaylist = (e) => {
+        _setPlaylist(e);
+    }
 
     useEffect(() => {
         setKeys(keyEvents)
@@ -46,8 +52,16 @@ export const MusicIndex = () => {
         setKeys(keyEvents);
     },[selectedSearchedMusicIndex, searchedMusics]);
 
-    const addToPlaylist = music => {
-        setPlaylist(playlist => [...playlist, music.stream])
+    const addToPlaylist = async music => {
+        const res = await MusicDataService.getMp3Link(music["title"], music["artist"]).then(res => res.data);
+        if("type" in res && res.type === "success"){
+            const result = res.value;
+            setPlaylist([...playlist, {
+                "src":result.stream,
+                "title": music["title"],
+                "artist": music["artist"],
+            }]);
+        }
     }
 
     const searchFiltering = async (search, setSearchedMusics, setSelectedSearchedMusicIndex, setIsSearching) => {
@@ -104,24 +118,31 @@ export const MusicIndex = () => {
             label: "Ajouter",
             args:{"music": searchedMusics[selectedSearchedMusicIndex]},
             callback: ({music}) => addToPlaylist(music)
+        },
+        {
+            ...buttons.circle,
+            label: "Retour",
+            callback: () => navigate("../")
         }
     ]
 
     return (
         <div className='container' >
             <div className='content'>
-                <div style={{ display:"flex", flexDirection:"row", flex: 1, padding:"0px 8px 8px 8px"}}>
-                    <div className={classes.genreContainer}>
+                <div style={{ display:"flex", flexDirection:"row", height:"85%", padding:"8px 4px"}}>
+                    <div className={classes.genreContainer} style={{ width:"25%" }}>
                         {[].map((genre, index) => <span key={index} >{genre.name}</span>)}
                     </div>
-                    <div className={classes.genreContainer}>
+                    <div className={classes.genreContainer} style={{ width:"75%" }}>
                         <TextMusicList offset={selectedSearchedMusicIndex} isContainerSelected={true} limit={12} musics={searchedMusics}/>
                     </div>
                 </div>
                 <AudioPlayer
                     autoPlay
-                    src={playlist[0]}
-                    onEnded={_ => setPlaylist(e => (e.length === 1) ? [] : e.slice(1, e.length))}
+                    hasDefaultKeyBindings={false}
+                    autoPlayAfterSrcChange={true}
+                    src={playlist[0]?.src}
+                    onEnded={_ => setPlaylist((playlist.length === 1) ? [] : playlist.slice(1, playlist.length))}
                 />
             </div>
         </div>

@@ -52,7 +52,7 @@ export const VisualKeyboard = (props) => {
         if(isOpen){
             setKeys(keyEvents);
         }
-    },[isOpen, layoutName, keyboardCallback, selectedKey, value])
+    },[isOpen, layoutName, keyboardCallback, setSelectedKey, setLayoutName, selectedKey, value])
 
     useEffect(() => {
         _setKeys(keyboardLayout[layoutName].map(e => e.split(" ")));
@@ -69,8 +69,8 @@ export const VisualKeyboard = (props) => {
     };
 
     const handleMove = ({move}) => {
+        console.log(selectedKey);
         const modulo = (n, m) => ((n % m) + m) % m;
-
         const type = (["top","bottom"].includes(move) ? "row" : "column");
 
         let rowIndex = keys.findIndex(e => e.includes(selectedKey));
@@ -80,11 +80,11 @@ export const VisualKeyboard = (props) => {
         if(type === "row"){
             const newIndex = modulo(rowIndex+shift, keys.length);
             columnIndex = (keys[newIndex].length <= columnIndex) ? keys[newIndex].length - 1 : columnIndex;
-            setSelectedKey(keys[newIndex][columnIndex]);
+            setSelectedKey(_ => keys[newIndex][columnIndex]);
         }
         else{
             const newIndex = modulo(columnIndex+shift, keys[rowIndex].length);
-            setSelectedKey(keys[rowIndex][newIndex]);
+            setSelectedKey(_ => keys[rowIndex][newIndex]);
         }
     }
 

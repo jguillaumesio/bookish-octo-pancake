@@ -9,7 +9,11 @@ class MusicDataService {
     }
 
     search(search){
-        return axios.post(`${this.root}/search`, { "search": search})
+        return axios.post(`${this.root}/search`, { "search": search, "type":"track"})
+    }
+
+    getMp3Link(title, artist){
+        return axios.post(`${this.root}/`, { "title": title, "artist": artist})
     }
 
     download(url, onDataReceive){

@@ -1,5 +1,5 @@
-module.exports = (app,token, downloads) => {
-    const games = require("../controllers/game.controller.js")(app, token, downloads);
+module.exports = (app, igdbToken, downloads) => {
+    const games = require("../controllers/game.controller.js")(app, igdbToken, downloads);
   
     const router = require("express").Router();
 
