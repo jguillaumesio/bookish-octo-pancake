@@ -19,7 +19,7 @@ const useStyle = makeStyles({
         color:"grey",
         display:"flex",
         flexDirection:"column",
-        justifyContent:"space-evenly",
+        justifyContent:"flex-start",
         height:"100%",
         zIndex:1
     },
@@ -129,9 +129,15 @@ export const MusicIndex = () => {
     return (
         <div className='container' >
             <div className='content'>
-                <div style={{ display:"flex", flexDirection:"row", height:"85%", padding:"8px 4px"}}>
-                    <div className={classes.genreContainer} style={{ width:"25%" }}>
+                <div style={{ display:"flex", flexDirection:"row", flex:1, padding:"8px 4px"}}>
+                    <div className={classes.genreContainer} style={{ width:"25%", padding:"20px" }}>
                         {[].map((genre, index) => <span key={index} >{genre.name}</span>)}
+                        <span>Créer une playlist</span>
+                        <span>Chercher une playlist</span>
+                        <span>Mes playlists</span>
+                        <div style={{ display:"flex", flexDirection:"column"}}>
+                            {playlist.map((e,index) => <span key={index}>{e.artist} - {e.title}</span>)}
+                        </div>
                     </div>
                     <div className={classes.genreContainer} style={{ width:"75%" }}>
                         <TextMusicList offset={selectedSearchedMusicIndex} isContainerSelected={true} limit={12} musics={searchedMusics}/>
@@ -141,6 +147,10 @@ export const MusicIndex = () => {
                     autoPlay
                     hasDefaultKeyBindings={false}
                     autoPlayAfterSrcChange={true}
+                    showJumpControls={false}
+                    showFilledVolume={false}
+                    customAdditionalControls={[]}
+                    layout={"horizontal"}
                     src={playlist[0]?.src}
                     onEnded={_ => setPlaylist((playlist.length === 1) ? [] : playlist.slice(1, playlist.length))}
                 />

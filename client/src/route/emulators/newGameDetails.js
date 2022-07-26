@@ -110,7 +110,7 @@ export const NewGameDetailsIndex = () => {
     }
 
     const handleMove = ({move}) => {
-        const shift = (move === "right") ? -1 : 1;
+        const shift = (move === "right") ? 1 : -1;
         const modulo = (n, m) => ((n % m) + m) % m;
         const newIndex = modulo(getSelectedIndex()+shift, screenshots.length);
         const newScreenshots = screenshots.map(e => {

@@ -106,9 +106,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
     const handleIndexSelection = ({setter, length, move}) => {
         const shift = (move === "down") ? 1 : -1;
         const modulo = (n, m) => ((n % m) + m) % m;
-        setter(index => {
-            return modulo(index + shift, length)
-        });
+        setter(index => modulo(index + shift, length));
     }
 
     let containers = [{
@@ -222,7 +220,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
             ...buttons.circle,
             label: "Retour",
             callback: () => {
-                GameDataService.launchGame("C:\\Users\\Guillaume\\Downloads\\bookish-octo-pancake\\server\\public\\games\\ps2\\Need-for-Speed-Carbon\\game.iso");
+                navigate("/")
             }
         },
     ]

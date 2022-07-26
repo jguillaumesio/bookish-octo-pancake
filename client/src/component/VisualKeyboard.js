@@ -69,7 +69,6 @@ export const VisualKeyboard = (props) => {
     };
 
     const handleMove = ({move}) => {
-        console.log(selectedKey);
         const modulo = (n, m) => ((n % m) + m) % m;
         const type = (["top","bottom"].includes(move) ? "row" : "column");
 
@@ -133,6 +132,11 @@ export const VisualKeyboard = (props) => {
                 setIsOpen(false);
                 setValue("");
             }
+        },
+        {
+          ...buttons.square,
+          label:"Effacer",
+          callback: () => setValue(e => e.slice(0, -1))
         },
         {
             ...buttons.cross,
