@@ -6,15 +6,12 @@ const useStyle = makeStyles({
         display: 'flex',
         flexDirection: 'row',
         alignItems:'center',
-        maxHeight:'80px',
-        height:'80px',
         color: 'grey',
         cursor: 'pointer',
         fontWeight:"bold",
         fontSize:"medium",
         margin:"0",
         padding:"8px 5px",
-        background:'#131313',
     },
     "selectedItem":{
         color:"white"

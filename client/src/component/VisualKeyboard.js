@@ -123,7 +123,7 @@ export const VisualKeyboard = (props) => {
             args: {"move": "bottom"},
             callback: handleMove
         }, {
-            ...buttons.select,
+            ...buttons.start,
             label: "Valider",
             args:{},
             callback: async () => {

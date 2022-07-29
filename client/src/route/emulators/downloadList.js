@@ -31,7 +31,7 @@ const useStyle = makeStyles({
 export const DownloadListIndex = ({breadCrumb}) => {
 
     const classes = useStyle();
-    //const navigate = useNavigate();
+    const navigate = useNavigate();
     const [games, setGames] = useState([]);
     const [downloadsToResume, _setDownloadsToResume] = useState([]);
     const [selectedGameIndex, setSelectedGameIndex] = useState(null);
@@ -91,6 +91,11 @@ export const DownloadListIndex = ({breadCrumb}) => {
             display: false,
             args: {"move": "up", "setter": setSelectedGameIndex, "length": downloadsToResume.length},
             callback: handleIndexSelection
+        },
+        {
+            ...buttons.circle,
+            label: "Retour",
+            callback: () => navigate("/emulators")
         },
         ... (downloadsToResume.length > 0 && selectedGameIndex !== null) ?
             [{

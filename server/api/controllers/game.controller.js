@@ -269,8 +269,8 @@ module.exports = (app, igdbToken, downloads) => {
                 if( !(gameDirectory in downloads) && fs.existsSync(informationFilePath)){
                     const information = JSON.parse(fs.readFileSync(informationFilePath, "utf-8"));
                     const details = JSON.parse(fs.readFileSync(`${findDirectoryByLetter(game.directory)}/details.json`, "utf-8"));
-                    const downloadedSize = information["chunks"].map((chunk,i) => fs.statSync(`${gameDirectory}/game${i + 1}.zip`)?.size).reduce((a, b) => a + b, 0);
                     if("state" in information && information.state === "downloading"){
+                        const downloadedSize = information["chunks"].map((chunk,i) => fs.statSync(`${gameDirectory}/game${i + 1}.zip`)?.size).reduce((a, b) => a + b, 0);
                         result.push({
                             ...game,
                             "percentage": (downloadedSize / information.total * 100).toFixed(0),

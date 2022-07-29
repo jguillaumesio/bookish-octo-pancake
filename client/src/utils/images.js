@@ -9,6 +9,7 @@ const R3_HORIZONTAL = require('./../assets/pad/R3_H.png');
 const L3_VERTICAL = require('./../assets/pad/L3_V.png');
 const R3_VERTICAL = require('./../assets/pad/R3_V.png');
 const select = require('./../assets/pad/select.png');
+const start = require('./../assets/pad/start.png');
 const top = require('./../assets/pad/top.png');
 const bottom = require('./../assets/pad/bottom.png');
 const right = require('./../assets/pad/right.png');
@@ -22,7 +23,7 @@ const music = require('./../assets/menu/music.png');
 const game = require('./../assets/menu/game.png');
 
 const images = {
-    R1,R2,L1,L2,L3,R3,L3_VERTICAL,L3_HORIZONTAL,R3_HORIZONTAL,R3_VERTICAL,select,top,bottom,right,left,square,triangle,circle,cross,tv,music,game
+    R1,R2,L1,L2,L3,R3,L3_VERTICAL,L3_HORIZONTAL,R3_HORIZONTAL,R3_VERTICAL,select, start, top,bottom,right,left,square,triangle,circle,cross,tv,music,game
 }
 
 export default images;

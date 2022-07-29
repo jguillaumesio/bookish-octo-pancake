@@ -6,7 +6,7 @@
   "license": "MIT",
   "main": "main.js",
   "private": true,
-  "homepage":"./build/",
+  "homepage": "./build/",
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
@@ -28,6 +28,7 @@
     "react-scripts": "5.0.0",
     "react-simple-keyboard": "^3.4.171",
     "socket.io-client": "^4.4.1",
+    "styled-components": "^5.3.5",
     "video.js": "^7.19.2",
     "web-vitals": "^2.1.4"
   },

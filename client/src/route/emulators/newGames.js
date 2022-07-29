@@ -219,9 +219,7 @@ export const NewGameListIndex = ({breadCrumb}) => {
         {
             ...buttons.circle,
             label: "Retour",
-            callback: () => {
-                navigate("/")
-            }
+            callback: () => navigate("/emulators")
         },
     ]
 

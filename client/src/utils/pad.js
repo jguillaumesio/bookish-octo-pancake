@@ -16,7 +16,7 @@ export const buttons = {
     "circle": {"icon": images.circle, keyboard:'m', buttonName: "B"},
     "triangle": {"icon": images.triangle, keyboard:'n', buttonName: "Y"},
     "select": {"icon": images.select, keyboard:'o', buttonName: "Back"},
-    "start": {"icon": images.select, keyboard:'<', buttonName: "Start"},
+    "start": {"icon": images.start, keyboard:'<', buttonName: "Start"},
     "top": {"icon": images.top, keyboard:'p', buttonName: "DPadUp"},
     "bottom": {"icon": images.bottom, keyboard:'q', buttonName: "DPadDown"},
     "left": {"icon": images.left, keyboard:'r', buttonName: "DPadLeft"},
