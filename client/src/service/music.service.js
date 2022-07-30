@@ -8,8 +8,8 @@ class MusicDataService {
         this.root = `http://127.0.0.1:8080/api/music`;
     }
 
-    search(search){
-        return axios.post(`${this.root}/search`, { "search": search, "type":"track"})
+    search(search, type){
+        return axios.post(`${this.root}/search`, { "search": search, "type": type})
     }
 
     getMp3Link(title, artist){

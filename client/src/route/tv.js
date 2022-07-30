@@ -49,7 +49,7 @@ export const TVIndex = () => {
         responsive: true,
         fluid: true,
         sources: [{
-            src: "https://srv.vhls.ru.com/cdn/premium121/tracks-v1a1/mono.m3u8", // 2, 3, 7, 10, (8,14)
+            src: "https://empire-streaming.cofilm/914560874d2106e09316e3286274a920/Sonic,-le-film-en-streaming-hd", // 2, 3, 7, 10, (8,14)
             type: 'application/x-mpegURL'
         }]
     };
@@ -57,7 +57,6 @@ export const TVIndex = () => {
     const handlePlayerReady = (player) => {
         playerRef.current = player;
 
-        // You can handle player events here, for example:
         player.on('waiting', () => {
             console.log('player is waiting');
         });
@@ -70,7 +69,12 @@ export const TVIndex = () => {
     return (
         <div className='container' >
             <div className='content'>
-                <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
+                <div style={{ display:"flex", flexDirection:"column", position:"absolute", left:0, background:"white", width:"20%"}}>
+                    {
+                        channels.map((channel, index) => <span style={{ width: "100%", overflow: "hidden", whiteSpace:"nowrap", textOverflow:"ellipsis"}}>{channel}</span>)
+                    }
+                </div>
+                <iframe src="https://playersb.com/e/zal3mjv1erwz"></iframe>
             </div>
         </div>
     )

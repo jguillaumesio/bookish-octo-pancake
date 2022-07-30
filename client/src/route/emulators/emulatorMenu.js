@@ -26,6 +26,7 @@ export const EmulatorMenuIndex = () => {
         <div className='container' >
             <div className='content'>
                 <ImageMenu
+                    onLeave={() => navigate("/")}
                     onValidate={onValidate}
                     style={{ display:"flex", height:"100%", flex:1, justifyContent:"center", alignItems:"center" }}
                     items={[

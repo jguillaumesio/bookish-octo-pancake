@@ -37,7 +37,7 @@ const useStyle = makeStyles({
     }
 })
 
-export const ImageMenu = ({items, onValidate, style}) => {
+export const ImageMenu = ({items, onValidate, onLeave, style}) => {
 
     const classes = useStyle();
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -78,6 +78,11 @@ export const ImageMenu = ({items, onValidate, style}) => {
             label:"Sélectionner",
             args: {"selectedIndex": selectedIndex},
             callback: ({selectedIndex}) => onValidate(selectedIndex)
+        },
+        {
+            ...buttons.circle,
+            label:"Retour",
+            callback: () => onLeave()
         }
     ];
 

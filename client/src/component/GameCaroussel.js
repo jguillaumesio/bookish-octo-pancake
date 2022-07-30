@@ -6,7 +6,7 @@ import {buttons} from "../utils/pad";
 
 export const GameCaroussel = (props) => {
 
-    let {games, onEnter, onBackspace} = props;
+    let {games, onEnter, onLeave} = props;
     const [width, margin, transition] = [300, 20, 500];
     const windowDimensions = useWindowDimensions();
     const [selected, setSelected] = useState(null);
@@ -46,16 +46,14 @@ export const GameCaroussel = (props) => {
         }, {
             ...buttons.circle,
             label:"Quitter",
-            callback: () => {
-                console.log("leave");
-            }
+            callback: () => onLeave()
         }
     ];
 
     useEffect(() => {
         setSelected(games[Math.floor(games.length / 2)]);
         setKeys(keyEvents);
-    }, [games]);
+    }, [games, setKeys, keyEvents]);
 
     useEffect(() => {
         setKeys(keyEvents);

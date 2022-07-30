@@ -6,5 +6,6 @@ import {DownloadListIndex} from "./emulators/downloadList";
 import {EmulatorMenuIndex} from "./emulators/emulatorMenu";
 import {ErrorIndex} from "./error";
 import {MusicIndex} from "./music";
+import {TVIndex} from "./tv";
 
-export { HomeIndex, EmulatorMenuIndex, MusicIndex, ErrorIndex, NewGameListIndex, GameListIndex, NewGameDetailsIndex, DownloadListIndex}
+export { HomeIndex, TVIndex, EmulatorMenuIndex, MusicIndex, ErrorIndex, NewGameListIndex, GameListIndex, NewGameDetailsIndex, DownloadListIndex}

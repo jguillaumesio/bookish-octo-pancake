@@ -9,6 +9,7 @@ import {TextMusicList} from "../component/TextMusicList";
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import {useNavigate} from "react-router-dom";
+import {Alert, Dialog, List, ListItem, ListItemText, Snackbar} from "@mui/material";
 
 const useStyle = makeStyles({
     'genreContainer':{
@@ -19,7 +20,7 @@ const useStyle = makeStyles({
         color:"grey",
         display:"flex",
         flexDirection:"column",
-        justifyContent:"flex-start",
+        justifyContent:"space-between",
         height:"100%",
         zIndex:1
     },
@@ -33,6 +34,8 @@ export const MusicIndex = () => {
 
     const classes = useStyle();
     const navigate = useNavigate();
+    const [snackbar,setSnackbar] = useState({"state": false, "type": null, "message":"" });
+    const [addingMusicDialog, setAddingMusicDialog] = useState({open: false, index:0});
     const [searchedMusics, setSearchedMusics] = useState([]);
     const [selectedSearchedMusicIndex, setSelectedSearchedMusicIndex] = useState(0);
     const [isSearching, setIsSearching] = useState(0);
@@ -49,8 +52,14 @@ export const MusicIndex = () => {
     },[]);
 
     useEffect(() => {
-        setKeys(keyEvents);
-    },[selectedSearchedMusicIndex, searchedMusics]);
+        console.log(addingMusicDialog);
+        if(addingMusicDialog.open){
+            setKeys(addingMusicKeyEvents);
+        }
+        else{
+            setKeys(keyEvents);
+        }
+    },[selectedSearchedMusicIndex, searchedMusics, addingMusicDialog]);
 
     const addToPlaylist = async music => {
         const res = await MusicDataService.getMp3Link(music["title"], music["artist"]).then(res => res.data);
@@ -61,12 +70,37 @@ export const MusicIndex = () => {
                 "title": music["title"],
                 "artist": music["artist"],
             }]);
+            setAddingMusicDialog({"index": 0, "open": false});
+        }
+        else if("type" in res && res.type === "error"){
+            setSearchedMusics(e => e.filter(i => i !== music) );
+            setSnackbar({"type":"error", "message":"La musique est introuvable !", "state": true});
+            setAddingMusicDialog({"index": 0, "open": false});
         }
     }
 
+    const addAfter = async music => {
+        const res = await MusicDataService.getMp3Link(music["title"], music["artist"]).then(res => res.data);
+        if("type" in res && res.type === "success"){
+            const result = res.value;
+            setPlaylist([...playlist.slice(0,1), {
+                "src":result.stream,
+                "title": music["title"],
+                "artist": music["artist"],
+            }, ...playlist.slice(1, playlist.length)]);
+            setAddingMusicDialog({"index": 0, "open": false});
+        }
+        else if("type" in res && res.type === "error"){
+            setSearchedMusics(e => e.filter(i => i !== music) );
+            setSnackbar({"type":"error", "message":"La musique est introuvable !", "state": true});
+            setAddingMusicDialog({"index": 0, "open": false});
+        }
+    }
+
+
     const searchFiltering = async (search, setSearchedMusics, setSelectedSearchedMusicIndex, setIsSearching) => {
         setIsSearching(1);
-        const response = await MusicDataService.search(search);
+        const response = await MusicDataService.search(search, "track");
         if("type" in response.data && response.data.type === "success"){
             setSelectedSearchedMusicIndex(0);
             setIsSearching(0);
@@ -89,6 +123,29 @@ export const MusicIndex = () => {
         const modulo = (n, m) => ((n % m) + m) % m;
         setter(index => modulo(index + shift, length));
     }
+
+    const addingMusicKeyEvents = [
+        {
+            ...buttons.bottom,
+            continuous: true,
+            display: false,
+            args:{"addingMusicDialog": addingMusicDialog},
+            callback: ({addingMusicDialog}) => setAddingMusicDialog({...addingMusicDialog, "index": (addingMusicDialog.index === 1) ? 0 : 1})
+        },
+        {
+            ...buttons.top,
+            continuous: true,
+            display: false,
+            args:{"addingMusicDialog": addingMusicDialog},
+            callback: ({addingMusicDialog}) => setAddingMusicDialog({...addingMusicDialog, "index": (addingMusicDialog.index === 1) ? 0 : 1})
+        },
+        {
+            ...buttons.cross,
+            label:"Valider",
+            args:{"music":searchedMusics[selectedSearchedMusicIndex], "index": addingMusicDialog.index},
+            callback: ({music, index}) => (index === 1) ? addAfter(music) : addToPlaylist(music)
+        }
+    ]
 
     const keyEvents = [
         {
@@ -114,10 +171,14 @@ export const MusicIndex = () => {
             callback: handleSearchFiltering
         },
         {
+            ...buttons.square,
+            label: "Réinitialiser",
+            callback: () => setSearchedMusics([])
+        },
+        {
             ...buttons.cross,
             label: "Ajouter",
-            args:{"music": searchedMusics[selectedSearchedMusicIndex]},
-            callback: ({music}) => addToPlaylist(music)
+            callback: () => setAddingMusicDialog(e => { return { ...e, open: true}})
         },
         {
             ...buttons.circle,
@@ -128,32 +189,64 @@ export const MusicIndex = () => {
 
     return (
         <div className='container' >
+            <Snackbar open={snackbar.state} autoHideDuration={6000} onClose={() => setSnackbar({"state": false, "type": "error", "message":"" })}>
+                <div>
+                    { snackbar.state &&
+                        <Alert variant="filled" severity={snackbar.type} sx={{ width: '100%' }}>
+                            {snackbar.message}
+                        </Alert>
+                    }
+                </div>
+            </Snackbar>
+            {
+                (searchedMusics.length !== 0) &&
+                <Dialog open={addingMusicDialog.open}>
+                    <List sx={{pt: 0, paddingBottom:"0"}}>
+                        <ListItem sx={{background:`${addingMusicDialog.index === 0 ? "#C5C5C5" : "transparent"}`}}><ListItemText primary="Ajouter à la playlist"/></ListItem>
+                        <ListItem sx={{background:`${addingMusicDialog.index === 1 ? "#C5C5C5" : "transparent"}`}}><ListItemText primary="Écouter après"/></ListItem>
+                    </List>
+                </Dialog>
+            }
             <div className='content'>
                 <div style={{ display:"flex", flexDirection:"row", flex:1, padding:"8px 4px"}}>
                     <div className={classes.genreContainer} style={{ width:"25%", padding:"20px" }}>
                         {[].map((genre, index) => <span key={index} >{genre.name}</span>)}
-                        <span>Créer une playlist</span>
-                        <span>Chercher une playlist</span>
-                        <span>Mes playlists</span>
                         <div style={{ display:"flex", flexDirection:"column"}}>
-                            {playlist.map((e,index) => <span key={index}>{e.artist} - {e.title}</span>)}
+                            <span>Créer une playlist</span>
+                            <span>Chercher une playlist</span>
+                            <span>Mes playlists</span>
                         </div>
+                        { playlist.length > 0 &&
+                            <div style={{ display:"flex", flexDirection:"column"}}>
+                                <h3>Liste de lecture</h3>
+                                {playlist.map((e,index) => <span key={index} style={{
+                                    whiteSpace: "nowrap",
+                                    textOverflow: "ellipsis",
+                                    display: "block",
+                                    width: "100%",
+                                    overflow:"hidden",
+                                    color:`${(index === 0) ? "white" : "grey"}`
+                                }}>{e.artist} - {e.title}</span>)}
+                            </div>
+                        }
                     </div>
                     <div className={classes.genreContainer} style={{ width:"75%" }}>
                         <TextMusicList offset={selectedSearchedMusicIndex} isContainerSelected={true} limit={12} musics={searchedMusics}/>
                     </div>
                 </div>
-                <AudioPlayer
-                    autoPlay
-                    hasDefaultKeyBindings={false}
-                    autoPlayAfterSrcChange={true}
-                    showJumpControls={false}
-                    showFilledVolume={false}
-                    customAdditionalControls={[]}
-                    layout={"horizontal"}
-                    src={playlist[0]?.src}
-                    onEnded={_ => setPlaylist((playlist.length === 1) ? [] : playlist.slice(1, playlist.length))}
-                />
+                { playlist.length > 0 &&
+                    <AudioPlayer
+                        autoPlay
+                        hasDefaultKeyBindings={false}
+                        //autoPlayAfterSrcChange={true}
+                        showJumpControls={false}
+                        showFilledVolume={false}
+                        customAdditionalControls={[]}
+                        layout={"horizontal"}
+                        src={playlist[0]?.src}
+                        onEnded={_ => setPlaylist((playlist.length === 1) ? [] : playlist.slice(1, playlist.length))}
+                    />
+                }
             </div>
         </div>
     )

@@ -11,6 +11,8 @@ const useStyle = makeStyles({
         fontWeight:"bold",
         fontSize:"medium",
         margin:"0",
+        height:"55px",
+        width:"100%",
         padding:"8px 5px",
     },
     "selectedItem":{
@@ -22,11 +24,6 @@ export const TextMusicList = (props) => {
 
     let { musics, offset, limit, isContainerSelected } = props;
     const selectedMusic = musics[offset];
-
-    useEffect(() => {
-        console.log(musics);
-        console.log(offset);
-    },[selectedMusic]);
 
     const visibleMusics = () => {
         return (offset + limit > musics.length)
@@ -40,7 +37,7 @@ export const TextMusicList = (props) => {
             {visibleMusics().map((music, index) => (
                 <div key={index} className={`${(isContainerSelected && selectedMusic === music) ? classes.selectedItem : ""} ${classes.item}`}>
                     <img style={{ height:'100%', padding:'5px', width:'auto'}} src={music["cover"]} title={`${music["artist"]} - ${music["title"]}`}/>
-                    <span>{music["artist"]} - {music["title"]}</span>
+                    <span style={{ display:"block", width:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{music["artist"]} - {music["title"]}</span>
                 </div>
             ))}
         </div>
