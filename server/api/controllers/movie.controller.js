@@ -136,20 +136,23 @@ const parseStreamWayStreamingLink = async link => {
         }
     }
 }
-const parseEmpireStreamingLink = async links => {
-    const result = [];
+const parseEmpireStreamingLink = async link => {
+    let result = [];
     const parseLink = obj => {
         const result = {
             "version": obj.version
         }
         switch (obj.property) {
             case "streamsb":
+                result.player = "streamsb";
                 result.link = `https://playersb.com/e/${obj.code}`;
                 break;
             case "doodstream":
+                result.player = "dood";
                 result.link = `https://dood.pm/e/${obj.code}`;
                 break;
             case "voe":
+                result.player = "voe";
                 result.link = `https://voe.sx/e/${obj.code}`;
                 break;
         }
@@ -164,22 +167,55 @@ const parseEmpireStreamingLink = async links => {
             args: [
                 '-wait-for-browser'
             ],
-            headless: false
+            headless: true
         });
         const regex = new RegExp(/const result = (\[.*?\]);/gms);
         const page = await browser.newPage()
-        for(let index in links){
-            await page.goto(links[index])
-            await page.waitForSelector(".block-overlay-bottom")
-            let content = await page.content();
-            result[index] = [...(result[index] ?? []), ...JSON.parse(regex.exec(content)[1]).map(e => parseLink(e))];
-        }
+        await page.goto(link)
+        await page.waitForSelector(".block-overlay-bottom")
+        let content = await page.content();
+        result = [...result, ...JSON.parse(regex.exec(content)[1]).map(e => parseLink(e))];
         await browser.close();
         return result;
     }catch(e){
         console.log(e);
         return result;
     }
+}
+const getVoePlayerSrc = async link => {
+    let result = null;
+    let browser = null;
+    try{
+        puppeteer.use(StealthPlugin());
+        browser = await puppeteer.launch({
+            product: "chrome",
+            executablePath:  `${appRoot}/public/puppeteer/chrome/chrome.exe`,
+            userDataDir: `${appRoot}/public/puppeteer/tmp`,
+            args: [
+                '-wait-for-browser'
+            ],
+            headless: false
+        });
+        const page = await browser.newPage();
+        await page.setRequestInterception(true);
+        page.on("request", async (r) => {
+            if (r.url().includes("voe-network") && r.url().includes("mp4")) {
+                result = r.url();
+            }
+            r.continue();
+        });
+        await page.goto(link);
+    }catch(e){
+        console.log(e);
+        return null;
+    }
+    while(result === null){
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    if(browser !== null){
+        await browser.close();
+    }
+    return result;
 }
 const getDoodPlayerSrc = async link => {
     let result = null;
@@ -259,20 +295,37 @@ const getSbStreamPlayerSrc = async link => {
 module.exports = (app) => {
     const module = {};
     module.getPlayerSrc = async (req, res) => {
-        const { player, link } = req.body;
-        let result = null;
-        switch(player){
-            case "sbstream":
-                result = await getSbStreamPlayerSrc(link);
-                break;
-            case "voe":
-                result = await getDoodPlayerSrc(link);
-                break;
-            case "dood":
-                result = await getDoodPlayerSrc(link);
-                break;
+        let { link } = req.body;
+        const streamingLinks = await parseEmpireStreamingLink(link);
+        if(streamingLinks.length === 0){
+            res.send({
+                type:"error",
+                value: null
+            });
+            return;
         }
-        if(result === null){
+        let result = [];
+        for(const streamingLink of streamingLinks){
+            let newLink = null;
+            switch(streamingLink.player){
+                case "streamsb":
+                    newLink = await getSbStreamPlayerSrc(streamingLink.link);
+                    break;
+                case "voe":
+                    newLink = await getVoePlayerSrc(streamingLink.link);
+                    break;
+                case "dood":
+                    newLink = await getDoodPlayerSrc(streamingLink.link)
+                    break;
+            }
+            if(newLink !== null){
+                result.push({
+                    ...streamingLink,
+                    "link":newLink
+                });
+            }
+        }
+        if(result.length === 0){
             res.send({
                 type:"error",
                 value: null
@@ -304,16 +357,9 @@ module.exports = (app) => {
                         "link": `https://empire-streaming.co/${e.urlPath}`
                     }
                 });
-                const links = await parseEmpireStreamingLink(movies.reduce((a,b) => [...a, b.link], []));
-                console.log(links);
                 res.send({
                     type:"success",
-                    value: movies.map((e,i) => {
-                        return {
-                            ...e,
-                            "link": links[i]
-                        }
-                    })
+                    value: movies
                 });
             }
             else{
