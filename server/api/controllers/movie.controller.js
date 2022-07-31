@@ -140,9 +140,9 @@ const parseEmpireStreamingLink = async links => {
     const result = [];
     const parseLink = obj => {
         const result = {
-            "version":obj.version
+            "version": obj.version
         }
-        switch(obj.property){
+        switch (obj.property) {
             case "streamsb":
                 result.link = `https://playersb.com/e/${obj.code}`;
                 break;
@@ -158,8 +158,13 @@ const parseEmpireStreamingLink = async links => {
     try{
         puppeteer.use(StealthPlugin());
         const browser = await puppeteer.launch({
+            product: "chrome",
+            executablePath:  `${appRoot}/public/puppeteer/chrome/chrome.exe`,
+            userDataDir: `${appRoot}/public/puppeteer/tmp`,
+            args: [
+                '-wait-for-browser'
+            ],
             headless: false
-
         });
         const regex = new RegExp(/const result = (\[.*?\]);/gms);
         const page = await browser.newPage()
@@ -176,9 +181,109 @@ const parseEmpireStreamingLink = async links => {
         return result;
     }
 }
+const getDoodPlayerSrc = async link => {
+    let result = null;
+    let browser = null;
+    try{
+        puppeteer.use(StealthPlugin());
+        browser = await puppeteer.launch({
+            product: "chrome",
+            executablePath:  `${appRoot}/public/puppeteer/chrome/chrome.exe`,
+            userDataDir: `${appRoot}/public/puppeteer/tmp`,
+            args: [
+                '-wait-for-browser'
+            ],
+            headless: false
+        });
+        const page = await browser.newPage();
+        await page.setRequestInterception(true);
+        page.on("request", async (r) => {
+            if (r.url().includes("dood.video") && r.url().includes("token")) {
+                result = r.url();
+            }
+            r.continue();
+        });
+        await page.goto(link);
+        await page.waitForSelector(".vjs-big-play-button");
+        await page.evaluate(() => {
+            document.getElementsByClassName("vjs-big-play-button")[0].click();
+        });
+    }catch(e){
+        console.log(e);
+        return null;
+    }
+    while(result === null){
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    if(browser !== null){
+        await browser.close();
+    }
+    return result;
+}
+const getSbStreamPlayerSrc = async link => {
+    let result = null;
+    let browser = null;
+    try{
+        puppeteer.use(StealthPlugin());
+        browser = await puppeteer.launch({
+            product: "chrome",
+            executablePath:  `${appRoot}/public/puppeteer/chrome/chrome.exe`,
+            userDataDir: `${appRoot}/public/puppeteer/tmp`,
+            args: [
+                '-wait-for-browser'
+            ],
+            headless: true
+        });
+        const page = await browser.newPage();
+        await page.setRequestInterception(true);
+        page.on("request", async (r) => {
+            if (r.url().includes("sources")) {
+                result = await axios.get(r.url()).then(res => res.data["stream_data"].file);
+            }
+            r.continue();
+        });
+        await page.goto(link);
+    }catch(e){
+        console.log(e);
+        return null;
+    }
+    while(result === null){
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    if(browser !== null){
+        await browser.close();
+    }
+    return result;
+}
 
 module.exports = (app) => {
     const module = {};
+    module.getPlayerSrc = async (req, res) => {
+        const { player, link } = req.body;
+        let result = null;
+        switch(player){
+            case "sbstream":
+                result = await getSbStreamPlayerSrc(link);
+                break;
+            case "voe":
+                result = await getDoodPlayerSrc(link);
+                break;
+            case "dood":
+                result = await getDoodPlayerSrc(link);
+                break;
+        }
+        if(result === null){
+            res.send({
+                type:"error",
+                value: null
+            });
+            return;
+        }
+        res.send({
+            type:"success",
+            value: result
+        });
+    }
     module.getNewMovies = async (req, res) => {
         const result = await parseStreamWayStreamingLink('https://wvw.streamay.to/');
         res.send(result);
