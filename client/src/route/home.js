@@ -1,9 +1,5 @@
-import {makeStyles} from "@mui/styles";
 import images from "./../utils/images";
-import {buttons} from "../utils/pad";
-import {useEffect, useState} from "react";
 import * as React from "react";
-import {KeyContext} from "../provider/HotKeyProvider";
 import {SportsEsports as SportsEsportsIcon, Audiotrack as AudiotrackIcon, Movie as MovieIcon, LiveTv as LiveTvIcon} from '@mui/icons-material';
 import {useNavigate} from "react-router-dom";
 import "./../assets/css/slideFromTopAnimation.css";

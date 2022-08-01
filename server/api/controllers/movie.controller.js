@@ -1,11 +1,47 @@
 const axios = require("axios");
-const qs = require("qs");
 const HTMLParser = require("node-html-parser");
 const dns = require("native-dns");
 const net = require("net");
 const URL = require ("url");
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+
+const parseMoviesFromEmpirePage = async (link, selector = ".card-custom-4") => { //card-web for categories
+    const result = {
+        "movies":[],
+        "series":[],
+    };
+    try{
+        puppeteer.use(StealthPlugin());
+        const browser = await puppeteer.launch({
+            product: "chrome",
+            executablePath:  `${appRoot}/public/puppeteer/chrome/chrome.exe`,
+            userDataDir: `${appRoot}/public/puppeteer/tmp`,
+            args: [
+                '-wait-for-browser'
+            ],
+            headless: false
+        });
+        const page = await browser.newPage()
+        await page.goto(link)
+        await page.waitForSelector("#body_content_empire")
+        const content = await page.content();
+        HTMLParser.parse(content.toString()).querySelectorAll(selector).map(movie => {
+            const obj = {
+                "title": movie.querySelectorAll("h3")[0].rawText.trim(),
+                "link": `https://empire-streaming.co/${movie.querySelectorAll("a")[0].getAttribute("href")}`,
+                "cover": `https://empire-streaming.co/${movie.querySelectorAll("img")[0].getAttribute("data-src")}`
+            };
+            const index = (obj.link.includes("film")) ? "movies" : "series";
+            result[index].push(obj);
+        });
+        await browser.close();
+        return result;
+    }catch(e){
+        console.log(e);
+        return result;
+    }
+}
 
 const resolveARecord = (hostname, dnsServer) => {
     return new Promise(function (resolve, reject) {
@@ -338,8 +374,12 @@ module.exports = (app) => {
         });
     }
     module.getNewMovies = async (req, res) => {
-        const result = await parseStreamWayStreamingLink('https://wvw.streamay.to/');
-        res.send(result);
+        //const result = await parseStreamWayStreamingLink('https://wvw.streamay.to/');
+        const result = await parseMoviesFromEmpirePage("https://empire-streaming.co/");
+        res.send({
+            type: "success",
+            value: result
+        });
     }
     module.search = async (req, res) => {
         const {search} = req.body;
