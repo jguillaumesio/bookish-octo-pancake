@@ -145,17 +145,10 @@ const parseStreamWayStreamingLink = async link => {
         const movies = [...HTMLParser.parse(page.toString()).querySelectorAll(".TPost.B")]
         for(let i in movies){
             const title = movies[i].querySelectorAll(".Title")[0];
-            const link = movies[i].querySelectorAll("a")[0];
             const cover = movies[i].querySelectorAll("img")[0];
 
-            const moviePage = await axios.get(`https://wvw.streamay.to${link.getAttribute("href")}`, {
-                headers: {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"},
-                dnsServer: '1.1.1.1'
-            }).then(res => res.data);
-
             movies[i] = {
-                "name": title.rawText,
-                "links": [...HTMLParser.parse(moviePage.toString()).querySelectorAll("iframe")].map(e => `https://wvw.streamay.to${e.getAttribute("src")}`),
+                "title": title.rawText,
                 "cover": `https://wvw.streamay.to${cover.getAttribute("src")}`
             }
         }
@@ -374,12 +367,9 @@ module.exports = (app) => {
         });
     }
     module.getNewMovies = async (req, res) => {
-        //const result = await parseStreamWayStreamingLink('https://wvw.streamay.to/');
-        const result = await parseMoviesFromEmpirePage("https://empire-streaming.co/");
-        res.send({
-            type: "success",
-            value: result
-        });
+        const result = await parseStreamWayStreamingLink('https://wvw.streamay.to/');
+        //const result = await parseMoviesFromEmpirePage("https://empire-streaming.co/");
+        res.send(result);
     }
     module.search = async (req, res) => {
         const {search} = req.body;

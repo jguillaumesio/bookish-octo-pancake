@@ -49,12 +49,14 @@ export const VisualKeyboard = (props) => {
     const [setKeys] = React.useContext(KeyContext);
 
     useEffect(() => {
+        console.log(isOpen);
         if(isOpen){
             setKeys(keyEvents);
         }
     },[isOpen, layoutName, keyboardCallback, setSelectedKey, setLayoutName, selectedKey, value])
 
     useEffect(() => {
+        console.log("setKeyboard");
         _setKeys(keyboardLayout[layoutName].map(e => e.split(" ")));
     },[layoutName]);
 
@@ -149,8 +151,8 @@ export const VisualKeyboard = (props) => {
                         case "{enter}":
                             await keyboardCallback(value);
                             keyboardCloseCallback();
-                            setIsOpen(false);
                             setValue("");
+                            setIsOpen(false);
                             break;
                         case "{bksp}":
                             setValue(value.slice(0, value.length - 1));

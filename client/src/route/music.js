@@ -52,7 +52,6 @@ export const MusicIndex = () => {
     },[]);
 
     useEffect(() => {
-        console.log(addingMusicDialog);
         if(addingMusicDialog.open){
             setKeys(addingMusicKeyEvents);
         }
@@ -113,7 +112,7 @@ export const MusicIndex = () => {
             await searchFiltering(search, setSearchedMusics, setSelectedSearchedMusicIndex, setIsSearching);
         });
         setKeyboardCloseCallback(_ => () => {
-            setKeys(keyEvents)
+            setTimeout(() => setKeys(keyEvents), 100);
         })
         setIsOpen(true);
     }
