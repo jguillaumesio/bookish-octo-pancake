@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({path:`${__dirname}/.env`});
 const cors = require('cors');
 
 const http = require("http");
@@ -24,7 +24,7 @@ app.use(cors({
 }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(`${__dirname}/public`));
 
 require("./api/routes/music.route")(app, spotifyToken);
 require("./api/routes/game.route")(app, igdbToken, downloads);

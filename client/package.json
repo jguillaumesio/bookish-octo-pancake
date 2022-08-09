@@ -8,6 +8,7 @@
   "private": true,
   "homepage": "./",
   "dependencies": {
+    "@ducanh2912/react-hls-player": "^3.2.2",
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
     "@iconify/icons-mdi": "^1.2.27",

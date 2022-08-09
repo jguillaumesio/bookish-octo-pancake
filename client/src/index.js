@@ -2,9 +2,20 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import reportWebVitals from './reportWebVitals';
 import {HashRouter, Route, Routes} from "react-router-dom";
-import {HomeIndex, MovieIndex, EmulatorMenuIndex, TVIndex, ErrorIndex, MusicIndex, GameListIndex, NewGameListIndex, DownloadListIndex, NewGameDetailsIndex} from "./route";
+import {
+    HomeIndex,
+    MovieIndex,
+    EmulatorMenuIndex,
+    TVIndex,
+    ErrorIndex,
+    MusicIndex,
+    GameListIndex,
+    NewGameListIndex,
+    DownloadListIndex,
+    NewGameDetailsIndex,
+    MoviePlayerIndex, SeriePlayerIndex
+} from "./route";
 import {GlobalProvider} from "./provider/GlobalProvider";
-import {} from "./route/emulators/emulatorMenu";
 
 ReactDOM.render(
     <HashRouter>
@@ -20,7 +31,11 @@ ReactDOM.render(
                     </Route>
                     <Route path="downloads" element={<DownloadListIndex breadCrumb={["Home","Downloads"]}/>}/>
                 </Route>
-                <Route path="movie" element={<MovieIndex breadCrumb={["Film et série"]}/>}/>
+                <Route path="movies">
+                    <Route index element={<MovieIndex breadCrumb={["Film et série"]}/>}/>
+                    <Route path="movie" element={<MoviePlayerIndex/>}/>
+                    <Route path="serie" element={<SeriePlayerIndex/>}/>
+                </Route>
                 <Route path="tv" element={<TVIndex breadCrumb={["Télévision"]}/>}/>
                 <Route path="music" element={<MusicIndex breadCrumb={["Musique"]}/>}/>
                 <Route path="error" element={<ErrorIndex breadCrumb={["Erreur"]}/>}/>

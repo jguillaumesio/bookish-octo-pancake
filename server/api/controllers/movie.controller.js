@@ -3,14 +3,29 @@ const HTMLParser = require("node-html-parser");
 const dns = require("native-dns");
 const net = require("net");
 const URL = require ("url");
-const puppeteer = require('puppeteer-extra')
+const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const {stringsSimilarityPercentage} = require("../../utils");
+
+const getCover = async title => {
+    let moviesCover = await axios.get(`https://api.themoviedb.org/3/search/movie?api_key=15d2ea6d0dc1d476efbca3eba2b9bbfb&query=${title}&include_adult=true`).then(res => res.data.results);
+    moviesCover = [...moviesCover].reduce((a,b) =>
+            (stringsSimilarityPercentage(a.original_title , title) > stringsSimilarityPercentage(b.original_title , title))
+                ? a
+                : b
+        ,moviesCover[0]);
+    if(moviesCover !== null && moviesCover !== undefined && moviesCover !== "" && "poster_path" in moviesCover && moviesCover.poster_path !== null){
+        moviesCover = `https://image.tmdb.org/t/p/original/${moviesCover.poster_path}`;
+    }
+    else{
+        moviesCover = `${process.env.API_URL}/movies/no-poster.png`
+    }
+    return moviesCover;
+}
 
 const parseMoviesFromEmpirePage = async (link, selector = ".card-custom-4") => { //card-web for categories
-    const result = {
-        "movies":[],
-        "series":[],
-    };
+    const result = [];
+
     try{
         puppeteer.use(StealthPlugin());
         const browser = await puppeteer.launch({
@@ -26,20 +41,29 @@ const parseMoviesFromEmpirePage = async (link, selector = ".card-custom-4") => {
         await page.goto(link)
         await page.waitForSelector("#body_content_empire")
         const content = await page.content();
-        HTMLParser.parse(content.toString()).querySelectorAll(selector).map(movie => {
+        for(const movie of HTMLParser.parse(content.toString()).querySelectorAll(selector)){
             const obj = {
                 "title": movie.querySelectorAll("h3")[0].rawText.trim(),
                 "link": `https://empire-streaming.co/${movie.querySelectorAll("a")[0].getAttribute("href")}`,
-                "cover": `https://empire-streaming.co/${movie.querySelectorAll("img")[0].getAttribute("data-src")}`
+                "type": (`https://empire-streaming.co/${movie.querySelectorAll("a")[0].getAttribute("href")}`.includes("film")) ? "FILM" : "SÉRIE"
             };
-            const index = (obj.link.includes("film")) ? "movies" : "series";
-            result[index].push(obj);
-        });
+            if(obj.title !== null && obj.title !== ""){
+                const cover = await getCover(obj.title);
+                obj.cover = cover;
+            }
+            result.push(obj);
+        }
         await browser.close();
-        return result;
+        return {
+            type:"success",
+            value: result
+        };
     }catch(e){
         console.log(e);
-        return result;
+        return {
+            type:"error",
+            value: null
+        };
     }
 }
 
@@ -165,7 +189,7 @@ const parseStreamWayStreamingLink = async link => {
         }
     }
 }
-const parseEmpireStreamingLink = async link => {
+const parseEmpireStreamingLink = async (link, type) => {
     let result = [];
     const parseLink = obj => {
         const result = {
@@ -196,14 +220,36 @@ const parseEmpireStreamingLink = async link => {
             args: [
                 '-wait-for-browser'
             ],
-            headless: true
+            headless: false
         });
-        const regex = new RegExp(/const result = (\[.*?\]);/gms);
-        const page = await browser.newPage()
+        const regex = (type === "FILM") ? new RegExp(/const result = (\[.*?\]);/gms) : new RegExp(/const result = ({.*?});/gms);
+        const page = await browser.newPage();
         await page.goto(link)
         await page.waitForSelector(".block-overlay-bottom")
         let content = await page.content();
-        result = [...result, ...JSON.parse(regex.exec(content)[1]).map(e => parseLink(e))];
+        if(type === "FILM"){
+            result = [...result, ...JSON.parse(regex.exec(content)[1]).map(e => parseLink(e))]
+        }
+        else{
+            result = JSON.parse(regex.exec(content)[1]);
+            result = Object.values(result).map(value => {
+                value.sort((a,b) => (a.episode < b.episode) ? -1 : 1);
+                return value;
+            });
+            for(const season of result){
+                for(let episodeIndex in season){
+                    const videos = [];
+                    for(const video of season[episodeIndex].video){
+                        videos.push(parseLink(video));
+                    }
+                    season[episodeIndex] = {
+                        saison: season[episodeIndex].saison,
+                        episode: season[episodeIndex].episode,
+                        videos: videos
+                    }
+                }
+            }
+        }
         await browser.close();
         return result;
     }catch(e){
@@ -302,11 +348,48 @@ const getSbStreamPlayerSrc = async link => {
         const page = await browser.newPage();
         await page.setRequestInterception(true);
         page.on("request", async (r) => {
+            console.log(r.url());
             if (r.url().includes("sources")) {
+                const regex = new RegExp(/#EXT-X-STREAM.*?RESOLUTION=(.*?),.*?FRAME-RATE=(.*?),.*?\n(.*?)\n/gm)
                 result = await axios.get(r.url()).then(res => res.data["stream_data"].file);
+                result = `${result.split(".m3u8?")[0]}.m3u8?t=MoJmGObVR-f5_GXN0U7a6zzjaOH0rloGV5t5UPlbtsA&s=1660080724&e=21600&f=32232974&srv=sto146&client=117.125.29.226`;
+                console.log(result);
+                result = await axios.get(result,{
+                    headers: {
+                        'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+                        "Accept": "*/*",
+                        "Accept-Encoding": "gzip, deflate, br",
+                        "Connection": "keep-alive",
+                        "Host": URL.parse(result).hostname,
+                        "Origin": "https://playersb.com",
+                        "Referer": "https://playersb.com/",
+                        "sec-ch-ua": '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
+                        "sec-ch-ua-mobile": "?0",
+                        "sec-ch-ua-platform": '"Windows"',
+                        "Sec-Fetch-Dest": "empty",
+                        "Sec-Fetch-Mode": "cors",
+                        "Sec-Fetch-Site": "cross-site",
+                    }
+                }).then(res => res.data);
+                result = [...result.matchAll(regex)];
+                result = result.reduce((a,b) => {
+                    if(b.length === 4){
+                        if(parseInt(a[1].split("x")[0]) < parseInt(b[1].split("x")[0])){
+                            return b;
+                        }
+                        else if(a[1].split("x")[0] === b[1].split("x")[0]){
+                            return (parseFloat(a[2]) > parseFloat(b[2])) ? a : b;
+                        }
+                        return a;
+                    }
+                    return a;
+                },result[0]);
+                result = result[3];
             }
             r.continue();
         });
+        console.log(link);
         await page.goto(link);
     }catch(e){
         console.log(e);
@@ -324,9 +407,16 @@ const getSbStreamPlayerSrc = async link => {
 module.exports = (app) => {
     const module = {};
     module.getPlayerSrc = async (req, res) => {
-        let { link } = req.body;
-        const streamingLinks = await parseEmpireStreamingLink(link);
-        if(streamingLinks.length === 0){
+        let { link, type } = req.body;
+        if(!("link" in req.body)){
+            res.send({
+                type:"error",
+                value: "Missing link in req.body"
+            });
+            return;
+        }
+        const streamingLinks = await parseEmpireStreamingLink(link, type);
+        if((type === "FILM" && streamingLinks.length === 0)){
             res.send({
                 type:"error",
                 value: null
@@ -334,26 +424,55 @@ module.exports = (app) => {
             return;
         }
         let result = [];
-        for(const streamingLink of streamingLinks){
-            let newLink = null;
-            switch(streamingLink.player){
-                case "streamsb":
-                    newLink = await getSbStreamPlayerSrc(streamingLink.link);
-                    break;
-                case "voe":
-                    newLink = await getVoePlayerSrc(streamingLink.link);
-                    break;
-                case "dood":
-                    newLink = await getDoodPlayerSrc(streamingLink.link)
-                    break;
+        if(type === "FILM"){
+            for(const streamingLink of streamingLinks){
+                let newLink = null;
+                switch(streamingLink.player){
+                    case "streamsb":
+                        newLink = await getSbStreamPlayerSrc(streamingLink.link);
+                        break;
+                    case "voe":
+                        newLink = await getVoePlayerSrc(streamingLink.link);
+                        break;
+                    case "dood":
+                        newLink = await getDoodPlayerSrc(streamingLink.link)
+                        break;
+                }
+                if(newLink !== null){
+                    result.push({
+                        ...streamingLink,
+                        "link":newLink
+                    });
+                }
             }
-            if(newLink !== null){
-                result.push({
-                    ...streamingLink,
-                    "link":newLink
-                });
+        }else{
+            for(const season of streamingLinks){
+                for(const episode of season){
+                    for(let video of episode.videos){
+                        let newLink = null;
+                        switch(video.player){
+                            case "streamsb":
+                                newLink = await getSbStreamPlayerSrc(video.link);
+                                break;
+                            case "voe":
+                                newLink = await getVoePlayerSrc(video.link);
+                                break;
+                            case "dood":
+                                newLink = await getDoodPlayerSrc(video.link)
+                                break;
+                        }
+                        if(newLink !== null){
+                            video = {
+                                ...video,
+                                "link": newLink
+                            }
+                        }
+                    }
+                }
             }
+            result = Object.keys(streamingLinks).map(i => streamingLinks[i]);
         }
+        console.log(result);
         if(result.length === 0){
             res.send({
                 type:"error",
@@ -367,8 +486,7 @@ module.exports = (app) => {
         });
     }
     module.getNewMovies = async (req, res) => {
-        const result = await parseStreamWayStreamingLink('https://wvw.streamay.to/');
-        //const result = await parseMoviesFromEmpirePage("https://empire-streaming.co/");
+        const result = await parseMoviesFromEmpirePage("https://empire-streaming.co/");
         res.send(result);
     }
     module.search = async (req, res) => {
@@ -380,13 +498,15 @@ module.exports = (app) => {
                 }
             }).then(res => res.data);
             if("status" in result && result.status){
-                const movies = (result.data["films"] ?? []).map(e => {
-                    return {
+                const movies = [];
+                for(let e of (result.data["films"] ?? [])){
+                    const cover = await getCover(e.title);
+                    movies.push({
                         "title": e.title,
-                        "cover": `https://empire-streaming.co${e.image[0].path}`,
+                        "cover": cover,
                         "link": `https://empire-streaming.co/${e.urlPath}`
-                    }
-                });
+                    });
+                }
                 res.send({
                     type:"success",
                     value: movies
@@ -399,6 +519,7 @@ module.exports = (app) => {
                 });
             }
         }catch(e){
+            console.log(e);
             res.send({
                 type:"error",
                 value:null

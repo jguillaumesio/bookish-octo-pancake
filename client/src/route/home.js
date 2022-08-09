@@ -15,7 +15,7 @@ export const HomeIndex = () => {
                 navigate("emulators");
                 break;
             case 1:
-                navigate("movie");
+                navigate("movies");
                 break;
             case 2:
                 navigate("music");

@@ -22,7 +22,23 @@ app.whenReady().then(createWindow)
 
 app.on('ready',() => {
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-    details.requestHeaders['Referer'] = "https://dood.pm/"
+    if(details.url.includes("dood.pm")){
+      details.requestHeaders['Referer'] = "https://dood.pm/";
+    }
+    if(details.url.includes("empire-streaming")){
+      details.requestHeaders['Referer'] = "https://empire-streaming.co/";
+    }
+    if(details.url.includes("delivery") && details.url.includes("m3u8")){
+      details.requestHeaders["Accept-Language"] = "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7";
+      details.requestHeaders["Accept-Encoding"] = "gzip, deflate, br";
+      details.requestHeaders["Origin"] = "https://playersb.com";
+      details.requestHeaders["Referer"] = "https://playersb.com/";
+      details.requestHeaders["sec-ch-ua"] = '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"';
+      details.requestHeaders["Sec-Fetch-Dest"] = "empty";
+      details.requestHeaders["Sec-Fetch-Mode"] = "cors";
+      details.requestHeaders["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36";
+      delete details.requestHeaders["Range"];
+    }
     callback({ requestHeaders: details.requestHeaders })
   })
 })

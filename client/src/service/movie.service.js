@@ -11,8 +11,8 @@ class MovieDataService {
         return axios.get(`${this.root}/new`);
     }
 
-    getPlayerSrc(link){
-        return axios.post(`${this.root}/getLinks`, { "link": link });
+    getPlayerSrc(link, type){
+        return axios.post(`${this.root}/getLinks`, { "link": link, "type": type });
     }
 
     search(search){

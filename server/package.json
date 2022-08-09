@@ -12,6 +12,7 @@
     "puppeteer-extra": "^3.3.4",
     "puppeteer-extra-plugin-stealth": "^2.11.0",
     "qs": "^6.10.5",
+    "request": "^2.88.2",
     "socket.io": "^4.4.1",
     "split-file": "^2.3.0",
     "yauzl": "^2.10.0"
