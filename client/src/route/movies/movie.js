@@ -24,6 +24,8 @@ export const MoviePlayerIndex = () => {
     },[])
 
     const getPlayer = () => {
+        console.log(source);
+        console.log((source.includes("m3u8")));
         return (source.includes("m3u8"))
             ? <ReactHlsPlayer
                 src={source}

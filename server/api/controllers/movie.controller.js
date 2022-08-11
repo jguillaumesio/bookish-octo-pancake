@@ -338,40 +338,19 @@ const getSbStreamPlayerSrc = async link => {
         puppeteer.use(StealthPlugin());
         browser = await puppeteer.launch({
             product: "chrome",
-            executablePath:  `${appRoot}/public/puppeteer/chrome/chrome.exe`,
+            executablePath:  `${appRoot}/public/puppeteer/chrome1/chrome.exe`,
             userDataDir: `${appRoot}/public/puppeteer/tmp`,
             args: [
                 '-wait-for-browser'
             ],
-            headless: true
+            headless: false
         });
         const page = await browser.newPage();
-        await page.setRequestInterception(true);
-        page.on("request", async (r) => {
-            console.log(r.url());
-            if (r.url().includes("sources")) {
+        page.on("response", async (response) => {
+            if (response.url().includes("master.m3u8")) {
+                result = await response.text();
                 const regex = new RegExp(/#EXT-X-STREAM.*?RESOLUTION=(.*?),.*?FRAME-RATE=(.*?),.*?\n(.*?)\n/gm)
-                result = await axios.get(r.url()).then(res => res.data["stream_data"].file);
-                result = `${result.split(".m3u8?")[0]}.m3u8?t=MoJmGObVR-f5_GXN0U7a6zzjaOH0rloGV5t5UPlbtsA&s=1660080724&e=21600&f=32232974&srv=sto146&client=117.125.29.226`;
                 console.log(result);
-                result = await axios.get(result,{
-                    headers: {
-                        'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
-                        "Accept": "*/*",
-                        "Accept-Encoding": "gzip, deflate, br",
-                        "Connection": "keep-alive",
-                        "Host": URL.parse(result).hostname,
-                        "Origin": "https://playersb.com",
-                        "Referer": "https://playersb.com/",
-                        "sec-ch-ua": '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
-                        "sec-ch-ua-mobile": "?0",
-                        "sec-ch-ua-platform": '"Windows"',
-                        "Sec-Fetch-Dest": "empty",
-                        "Sec-Fetch-Mode": "cors",
-                        "Sec-Fetch-Site": "cross-site",
-                    }
-                }).then(res => res.data);
                 result = [...result.matchAll(regex)];
                 result = result.reduce((a,b) => {
                     if(b.length === 4){
@@ -387,10 +366,19 @@ const getSbStreamPlayerSrc = async link => {
                 },result[0]);
                 result = result[3];
             }
-            r.continue();
+            const maPromesse = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve('toto');
+                }, 300000);
+            });
+            await maPromesse;
         });
-        console.log(link);
         await page.goto(link);
+        await page.waitForSelector(".jw-icon.jw-icon-display.jw-button-color.jw-reset");
+        await page.evaluate(() => {
+            document.querySelectorAll(".jw-icon.jw-icon-display.jw-button-color.jw-reset")[0].click();
+        });
+        //TODO get page response to wait for master.m3u8 response
     }catch(e){
         console.log(e);
         return null;
@@ -398,9 +386,7 @@ const getSbStreamPlayerSrc = async link => {
     while(result === null){
         await new Promise(resolve => setTimeout(resolve, 200));
     }
-    if(browser !== null){
-        await browser.close();
-    }
+    await browser.close();
     return result;
 }
 
