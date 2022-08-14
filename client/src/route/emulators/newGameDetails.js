@@ -233,7 +233,7 @@ export const NewGameDetailsIndex = () => {
                           </div>
                         : <List sx={{pt: 0}}>
                             {game.games.map((element, index) => (
-                                <ListItem sx={{background:`${index === selectedGameDownload ? "#C5C5C5" : "transparent"}`}} onClick={() => download(element)} key={index}>
+                                <ListItem sx={{background:`${index === selectedGameDownload ? "#C5C5C5" : "transparent"}`}} key={index}>
                                     <ListItemText primary={element.rawName}/>
                                 </ListItem>
                             ))}

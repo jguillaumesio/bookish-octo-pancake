@@ -1,5 +1,4 @@
 import {useRef} from "react";
-const {VideoJS} = require("../component/VideoJS");
 
 
 export const TVIndex = () => {

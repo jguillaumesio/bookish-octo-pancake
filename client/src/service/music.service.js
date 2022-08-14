@@ -5,7 +5,7 @@ class MusicDataService {
 
     constructor(){
         this.socket = null;
-        this.root = `http://127.0.0.1:8080/api/music`;
+        this.root = `http://127.0.0.1:8080/api/musics`;
     }
 
     search(search, type){

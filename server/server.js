@@ -29,6 +29,7 @@ app.use(express.static(`${__dirname}/public`));
 require("./api/routes/music.route")(app, spotifyToken);
 require("./api/routes/game.route")(app, igdbToken, downloads);
 require("./api/routes/movie.route")(app);
+require("./api/routes/misc.route")(app);
 require("./api/routes/installation.route")(app, igdbToken);
 
 app.use(function (req, res, next) {

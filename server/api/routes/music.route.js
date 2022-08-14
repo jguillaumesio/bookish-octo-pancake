@@ -5,5 +5,5 @@ module.exports = (app, spotifyToken) => {
     router.post("/search", music.spotifySearch);
     router.post("/", music.getMp3Link)
 
-    app.use('/api/music', router);
+    app.use('/api/musics', router);
 };

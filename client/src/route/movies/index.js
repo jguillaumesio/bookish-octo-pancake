@@ -1,6 +1,6 @@
 import {useContext, useEffect, createRef, useState} from "react";
 import MovieDataService from "./../../service/movie.service";
-import {IconButton, ImageList, ImageListItem, ImageListItemBar, ListSubheader} from "@mui/material";
+import {IconButton, ImageList, ImageListItem, ImageListItemBar, CircularProgress} from "@mui/material";
 import {makeStyles} from "@mui/styles";
 import {KeyContext} from "../../provider/HotKeyProvider";
 import {KeyboardContext} from "../../component/VisualKeyboard";
@@ -20,7 +20,7 @@ export const MovieIndex = () => {
     const cols = 8;
     const navigate = useNavigate();
     let toScroll = null;
-    const [isSearching, setIsSearching] = useState(-1);
+    const [isSearching, setIsSearching] = useState(1);
     const [featuredItems, setFeaturedItems] = useState([]);
     const [searchedItems, setSearchedItems] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -40,7 +40,7 @@ export const MovieIndex = () => {
 
     useEffect(() => {
         setKeys(keyEvents);
-        if(refs[selectedIndex]?.getBoundingClientRect()?.top !== null){
+        if(refs[selectedIndex]?.getBoundingClientRect()?.top !== null && toScroll !== null){
             const toTop = (refs[selectedIndex] == null) ? 0 : (refs[selectedIndex].offsetHeight + 20) * Math.floor(selectedIndex / cols);
             toScroll.scrollTo(0, toTop);
         }
@@ -50,6 +50,7 @@ export const MovieIndex = () => {
         setKeys(keyEvents);
         const res = await MovieDataService.getNewMovies().then(res => res.data);
         if("type" in res && res.type === "success"){
+            setIsSearching(-1);
             setFeaturedItems(res.value);
             if(selectedIndex > res.value.length){
                 setSelectedIndex(0);
@@ -158,31 +159,38 @@ export const MovieIndex = () => {
     return (
         <div className='container' >
             <div className='content'>
-                <ImageList ref={el => toScroll = el} cols={cols} gap={20} sx={{ padding:"20px", position:"relative", width: "100%", height: "fit-content", overflowY:"hidden" }}>
-                    {refs.length > 0 && getItems().map((item, index) => (
-                        <ImageListItem ref={el => refs[index] = el} key={index} className={`${(index === selectedIndex) ? classes.selectedContainer : ""}`}>
-                            <img
-                                src={item.cover}
-                                srcSet={item.cover}
-                                alt={item.title}
-                                loading="lazy"
-                            />
-                            <ImageListItemBar
-                                title={item.title}
-                                actionIcon={
-                                    <IconButton
-                                        sx={{ color: 'rgba(255, 255, 255, 0.54)' }}
-                                        aria-label={`info about ${item.title}`}
-                                    >
-                                    </IconButton>
-                                }
-                            />
-                            <div style={{ top:"0", fontWeight:"bold", left:"0", position:"absolute", background:"rgba(255,50,50,0.8)", color:"black", width:"fit-content", height:"auto", padding:"5px", textAlign:"center", justifyContent:"center"}}>
-                                {item.type}
-                            </div>
-                        </ImageListItem>
-                    ))}
-                </ImageList>
+                { isSearching === 1
+                ?
+                    <div style={{ display:"flex", width: "100%", height:"100%", alignItems:"center", justifyContent:"center"}}>
+                        <CircularProgress/>
+                    </div>
+                :
+                    <ImageList ref={el => toScroll = el} cols={cols} gap={20} sx={{ padding:"20px", position:"relative", width: "100%", height: "fit-content", overflowY:"hidden" }}>
+                        {refs.length > 0 && getItems().map((item, index) => (
+                            <ImageListItem ref={el => refs[index] = el} key={index} className={`${(index === selectedIndex) ? classes.selectedContainer : ""}`}>
+                                <img
+                                    src={item.cover}
+                                    srcSet={item.cover}
+                                    alt={item.title}
+                                    loading="lazy"
+                                />
+                                <ImageListItemBar
+                                    title={item.title}
+                                    actionIcon={
+                                        <IconButton
+                                            sx={{ color: 'rgba(255, 255, 255, 0.54)' }}
+                                            aria-label={`info about ${item.title}`}
+                                        >
+                                        </IconButton>
+                                    }
+                                />
+                                <div style={{ top:"0", fontWeight:"bold", left:"0", position:"absolute", background:"rgba(255,50,50,0.8)", color:"black", width:"fit-content", height:"auto", padding:"5px", textAlign:"center", justifyContent:"center"}}>
+                                    {item.type}
+                                </div>
+                            </ImageListItem>
+                        ))}
+                    </ImageList>
+                }
             </div>
         </div>
     )
