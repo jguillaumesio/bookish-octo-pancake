@@ -274,7 +274,7 @@ const getVoePlayerSrc = async link => {
         const page = await browser.newPage();
         await page.setRequestInterception(true);
         page.on("request", async (r) => {
-            if (r.url().includes("voe-network") && r.url().includes("mp4")) {
+            if (r.url().includes("voe-network") && (r.url().includes("mp4") || r.url().includes("m3u8"))) {
                 result = r.url();
             }
             r.continue();
@@ -338,7 +338,7 @@ const getSbStreamPlayerSrc = async link => {
         puppeteer.use(StealthPlugin());
         browser = await puppeteer.launch({
             product: "chrome",
-            executablePath:  `${appRoot}/public/puppeteer/chrome1/chrome.exe`,
+            executablePath:  `${appRoot}/public/puppeteer/chrome/chrome.exe`,
             userDataDir: `${appRoot}/public/puppeteer/tmp`,
             args: [
                 '-wait-for-browser'
@@ -392,7 +392,7 @@ const getSbStreamPlayerSrc = async link => {
 
 module.exports = (app) => {
     const module = {};
-    module.getPlayerSrc = async (req, res) => {
+    module.getPlayerSrc = async (req,res) => {
         let { link, type } = req.body;
         if(!("link" in req.body)){
             res.send({
@@ -431,7 +431,8 @@ module.exports = (app) => {
                     });
                 }
             }
-        }else{
+        }
+        else{
             for(const season of streamingLinks){
                 for(const episode of season){
                     for(let video of episode.videos){
@@ -458,7 +459,6 @@ module.exports = (app) => {
             }
             result = Object.keys(streamingLinks).map(i => streamingLinks[i]);
         }
-        console.log(result);
         if(result.length === 0){
             res.send({
                 type:"error",
@@ -469,6 +469,32 @@ module.exports = (app) => {
         res.send({
             type:"success",
             value: result
+        });
+    }
+    module.getSerieEpisodes = async (req, res) => {
+        let { link } = req.body;
+        if(!("link" in req.body)){
+            res.send({
+                type:"error",
+                value: "Missing link in req.body"
+            });
+            return;
+        }
+        const streamingLinks = await parseEmpireStreamingLink(link, "SERIE");
+        const result = Object.keys(streamingLinks).map(i => streamingLinks[i]).map(e => e.reduce((a,b) => {
+            a[b.saison] = (!(b.saison in a)) ? [{"episode": b.episode, "videos": b.videos}] : [...a[b.saison], {"episode": b.episode, "videos": b.videos}];
+           return a;
+        },{}));
+        if(result.length === 0){
+            res.send({
+                type:"error",
+                value: null
+            });
+            return;
+        }
+        res.send({
+            type:"success",
+            value: result.map(e => Object.values(e)[0].sort((a,b) => a.episode >= b.episode ? 1 : -1).map(e => e.videos))
         });
     }
     module.getNewMovies = async (req, res) => {

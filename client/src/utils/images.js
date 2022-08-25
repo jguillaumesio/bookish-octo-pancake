@@ -21,9 +21,10 @@ const cross = require('./../assets/pad/cross.png');
 const tv = require('./../assets/menu/tv.png');
 const music = require('./../assets/menu/music.png');
 const game = require('./../assets/menu/game.png');
+const movie = require('./../assets/menu/movie.png');
 
 const images = {
-    R1,R2,L1,L2,L3,R3,L3_VERTICAL,L3_HORIZONTAL,R3_HORIZONTAL,R3_VERTICAL,select, start, top,bottom,right,left,square,triangle,circle,cross,tv,music,game
+    R1,R2,L1,L2,L3,R3,L3_VERTICAL,L3_HORIZONTAL,R3_HORIZONTAL,R3_VERTICAL,select, start, top,bottom,right,left,square,triangle,circle,cross,tv,music,game,movie
 }
 
 export default images;

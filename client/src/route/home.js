@@ -36,7 +36,7 @@ export const HomeIndex = () => {
                         {name: "Jeu", image: images.game, Icon: SportsEsportsIcon},
                         {name: "Film", image: images.tv, Icon: LiveTvIcon},
                         {name: "Musique", image: images.music, Icon: AudiotrackIcon},
-                        {name: "Télévision", image: images.tv, Icon: MovieIcon}
+                        {name: "Télévision", image: images.movie, Icon: MovieIcon}
                     ]}
                 />
             </div>

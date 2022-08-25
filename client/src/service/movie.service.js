@@ -15,6 +15,10 @@ class MovieDataService {
         return axios.post(`${this.root}/getLinks`, { "link": link, "type": type });
     }
 
+    getSerieEpisodes(link){
+        return axios.post(`${this.root}/getSerieEpisodes`, { "link": link, "type": "SERIE" });
+    }
+
     search(search){
         return axios.post(`${this.root}/search`, { "search": search });
     }

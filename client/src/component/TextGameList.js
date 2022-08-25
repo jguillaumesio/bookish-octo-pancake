@@ -19,10 +19,9 @@ export const TextGameList = (props) => {
 
     let { games, offset, limit, isContainerSelected } = props;
     const selectedGame = games[offset];
-    const visibleGamesNumber = 12;
 
     const visibleGames = () => {
-        if(games.length <= visibleGamesNumber){
+        if(games.length <= limit){
             return games;
         }
         return (offset + limit > games.length)
@@ -37,7 +36,7 @@ export const TextGameList = (props) => {
     }
 
     return(
-        <div style={{ width:"100%", flex:"1", flexDirection:"column", justifyContent:`${ (games.length > visibleGamesNumber) ? "space-evenly" : "flex-start"}`, display:"flex", boxSizing:'border-box', padding:'0 20px', margin:'0'}}>
+        <div style={{ width:"100%", flex:"1", flexDirection:"column", justifyContent:`${ (games.length > limit) ? "space-evenly" : "flex-start"}`, display:"flex", boxSizing:'border-box', padding:'0 20px', margin:'0'}}>
             {visibleGames().map((game, index) => (
                 <p key={index} className={`${(isContainerSelected && selectedGame === game) ? classes.selectedItem : ""} ${classes.item}`}>{htmlDecode(game.name)}</p>
             ))}
