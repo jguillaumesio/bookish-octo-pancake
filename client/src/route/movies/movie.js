@@ -130,7 +130,6 @@ export const MoviePlayerIndex = () => {
                 </List>
             </Dialog>
             <div className='content'>
-                <button id="domInteract" style={{ display:"none"}}></button>
                 { (source !== null && !isLoading)
                 ?
                     <div>

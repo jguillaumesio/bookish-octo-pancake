@@ -6,7 +6,7 @@ import {useNavigate} from "react-router-dom";
 import {KeyContext} from "../provider/HotKeyProvider";
 
 export const ModalStepper = (props) => {
-    const { seasons, setCurrentEpisode } = props;
+    const { seasons, setCurrentEpisode, canSetKeys } = props;
     const [selectedSeason, setSelectedSeason] = useState(0);
     const [selectedEpisode, setSelectedEpisode] = useState(0);
     const [selectedPlayer, setSelectedPlayer] = useState(0);
@@ -17,11 +17,13 @@ export const ModalStepper = (props) => {
     const elementHeight = 40;
 
     useEffect(() => {
-        setKeys(keyEvents);
+        if(canSetKeys){
+            setKeys(keyEvents);
+        }
     },[activeStep, selectedSeason, selectedEpisode]);
 
     const visibleFromList = useCallback((list, offset) => {
-        const nbrOfElements = (listRef?.current?.offsetHeight ?? 0) / elementHeight;
+        const nbrOfElements = Math.floor((listRef?.current?.offsetHeight ?? 0) / elementHeight);
         if(nbrOfElements === 0){
             return [];
         }
@@ -29,8 +31,8 @@ export const ModalStepper = (props) => {
             return list;
         }
         return (offset + nbrOfElements > list.length)
-            ? [...list.slice(offset, nbrOfElements), ...list.slice(0, offset + nbrOfElements - list.length)]
-            : list.slice(offset, offset + nbrOfElements);
+            ? [...list.slice(offset, offset + nbrOfElements), ...list.slice(0, offset + nbrOfElements - list.length)]
+            : [...list.slice(offset, offset + nbrOfElements)];
     },[listRef.current]);
 
     const steps = () => [
@@ -108,7 +110,7 @@ export const ModalStepper = (props) => {
                     <React.Fragment>
                         <ul ref={listRef} style={{ listStyleType:"none", margin:"10px 0", flex:1, overflow:"hidden"}}>
                             {visibleFromList(steps()[activeStep].list, steps()[activeStep].selected).map((e,index) => {
-                                return <li key={index} style={{ padding:"10px", background: `${index !== steps()[activeStep].selected ? "white" : "grey"}`}}>{e}</li>
+                                return <li key={index} style={{ padding:"10px", background: `${e !== steps()[activeStep].list[steps()[activeStep].selected] ? "white" : "grey"}`}}>{e}</li>
                             })}
                         </ul>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 0 }}>

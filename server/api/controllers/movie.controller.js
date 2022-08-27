@@ -392,6 +392,32 @@ const getSbStreamPlayerSrc = async link => {
 
 module.exports = (app) => {
     const module = {};
+    module.getSrcFromPlayerLink = async (req,res) => {
+        let { link, player } = req.body;
+        let newLink = null;
+        switch(player){
+            case "streamsb":
+                newLink = await getSbStreamPlayerSrc(link);
+                break;
+            case "voe":
+                newLink = await getVoePlayerSrc(link);
+                break;
+            case "dood":
+                newLink = await getDoodPlayerSrc(link)
+                break;
+        }
+        if(newLink !== null){
+            res.send({
+                "type":"success",
+                "value":newLink
+            });
+            return
+        }
+        res.send({
+            "type":"error",
+            "value":null
+        });
+    }
     module.getPlayerSrc = async (req,res) => {
         let { link, type } = req.body;
         if(!("link" in req.body)){
@@ -514,6 +540,16 @@ module.exports = (app) => {
                 for(let e of (result.data["films"] ?? [])){
                     const cover = await getCover(e.title);
                     movies.push({
+                        "type": "FILM",
+                        "title": e.title,
+                        "cover": cover,
+                        "link": `https://empire-streaming.co/${e.urlPath}`
+                    });
+                }
+                for(let e of (result.data["series"] ?? [])){
+                    const cover = await getCover(e.title);
+                    movies.push({
+                        "type": "SERIE",
                         "title": e.title,
                         "cover": cover,
                         "link": `https://empire-streaming.co/${e.urlPath}`

@@ -26,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(`${__dirname}/public`));
 
+require("./api/routes/tv.route")(app);
 require("./api/routes/music.route")(app, spotifyToken);
 require("./api/routes/game.route")(app, igdbToken, downloads);
 require("./api/routes/movie.route")(app);

@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "start": "concurrently -k \"npm run server\" \"npm run electron\"",
-    "server": "node ./server/server",
+    "server": "node ./server/server.js",
     "electron": "npm --prefix ./client run electron-start"
   },
   "eslintConfig": {

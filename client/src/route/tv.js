@@ -1,4 +1,5 @@
 import {useRef} from "react";
+import VideoJS from "../component/VideoJS";
 
 
 export const TVIndex = () => {
@@ -14,7 +15,7 @@ export const TVIndex = () => {
         responsive: true,
         fluid: true,
         sources: [{
-            src: channels[0],
+            src: "https://yatn9ng5b2d6a9e4.cdnexpress37.net:8443/hls/ysagetp2j4x.m3u8?s=795s5-fy6VVEdiYevWqj4g&e=1661638091",
             type: 'application/x-mpegURL'
         }]
     };
@@ -39,8 +40,7 @@ export const TVIndex = () => {
                         channels.map((channel, index) => <span style={{ width: "100%", overflow: "hidden", whiteSpace:"nowrap", textOverflow:"ellipsis"}}>{channel}</span>)
                     }
                 </div>
-                {/*<VideoJS options={videoJsOptions} onReady={handlePlayerReady} />*/}
-                <iframe src={channels[0]}/>
+                <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
                 {/*<video autoPlay={true} tabIndex="-1" role="application" preload="none" src="https://tr232gd.dood.video/u5kj6srdjpglsdgge6wh4yqzlg5z4kaqgsmbc2uzt3m5rc7l645ssa6j4xgq/o2q3eevabn~xeQrmK5oVb?token=3y71nx74aj6smk0z3gg0mq8h&expiry=1659300895179"></video>*/}
             </div>
         </div>
