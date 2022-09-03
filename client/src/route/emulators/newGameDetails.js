@@ -63,7 +63,7 @@ export const NewGameDetailsIndex = () => {
 
     useEffect(() => {
         setKeys(keyEvents);
-    }, [selectedContainer, gameDetails, screenshots]);
+    }, [selectedContainer, gameDetails, selectedGameDownload, screenshots]);
 
     useEffect(async () => {
         setKeys(keyEvents);
@@ -122,9 +122,9 @@ export const NewGameDetailsIndex = () => {
         setScreenshots(newScreenshots);
     }
 
-    const download = () => {
+    const download = ({selectedGameIndex}) => {
         setOpenAvailableDownloads(-1);
-        GameDataService.download(game.games[selectedGameDownload].url, game.directory, game.name, (args) => {
+        GameDataService.download(game.games[selectedGameIndex].url, game.directory, game.name, (args) => {
             setOpenAvailableDownloads(0);
             setSnackbar({...args, "state": true});
             setGameDetails({
@@ -196,7 +196,7 @@ export const NewGameDetailsIndex = () => {
         }, {
             ...buttons.cross,
             label: "Voir",
-            args: {"state": 1},
+            args: {"state": 1, "selectedGameIndex": selectedGameDownload},
             callback: containers[selectedContainer].onTap
         }, {
             ...buttons.circle,

@@ -250,8 +250,24 @@ module.exports = () => {
             console.log(e);
         }
 
+        let alreadyPressed = [false,false];
+        let timeout = null;
         lepikEvents.events.on('keyPress', async (data) => {
+            console.log(data);
+            console.log(alreadyPressed);
             if (data === "e") {
+                clearTimeout(timeout);
+                timeout = null;
+                alreadyPressed = [true, false];
+                timeout = setTimeout(() => alreadyPressed = [false, false], 500);
+            }
+            if (data === "t") {
+                clearTimeout(timeout);
+                timeout = null;
+                alreadyPressed[1] = true;
+                timeout = setTimeout(() => alreadyPressed = [false, false], 500);
+            }
+            if (data === "c" && alreadyPressed[0] && alreadyPressed[1]) {
                 try {
                     await new Promise((resolve, reject) => {
                         exec('tasklist | find /i "pcsx2.exe" && taskkill /im pcsx2.exe /F || echo process "pcsx2.exe" not running.', (error, stdout, stderr) => {
@@ -262,6 +278,7 @@ module.exports = () => {
                             }
                         });
                     });
+                    lepikEvents.events.on("keyPress", data => null);
                 } catch (e) {
                     console.log(e);
                 }

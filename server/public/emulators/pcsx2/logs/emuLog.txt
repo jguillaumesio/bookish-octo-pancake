@@ -22,11 +22,11 @@ Loading plugins from C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\pu
 	Bound SPU2: Spu2-X.dll [SPU2-X 20200506140834 2.0.0]
 	Bound CDVD: cdvdGigaherz.dll [cdvdGigaherz 20200506140834 0.11.0]
 	Bound  USB: USBnull.dll [USBnull Driver 20200506140834 0.7.0]
+(GameDB) 9858 games on record (loaded in 255ms)
 	Bound   FW: FWnull.dll [FWnull Driver 20200506140834 0.7.0]
 	Bound DEV9: DEV9null.dll [DEV9null Driver 20200506140834 0.5.0]
 Plugins loaded successfully.
 
-(GameDB) 9858 games on record (loaded in 247ms)
 HLE Notice: ELF does not have a path.
 
 Initializing plugins...
@@ -45,11 +45,13 @@ Opening plugins...
 	Opening PAD
 	Opening SPU2
 	Opening CDVD
-CDVDiso Error: No filename specified.
-Closing plugins...
-	Closing SPU2
-	Closing PAD
-	Closing GS
+isoFile open ok: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\games\0-9\007-_-Nightfire\007 - Nightfire (Europe) (De,Es).iso
+	Image type  = DVD
+ * CDVD Disk Open: DVD, Single layer or unknown:
+ * * Track 1: Data (Mode 1) (1956784 sectors)
+	Opening USB
+	Opening FW
+	Opening DEV9
 3.x GL context successfully created
 OpenGL information. GPU: Quadro K3100M/PCIe/SSE2. Vendor: NVIDIA Corporation. Driver: NVIDIA 392.68
 INFO: GL_ARB_sparse_texture is NOT SUPPORTED
@@ -70,6 +72,125 @@ Current Renderer: OpenGL (Hardware renderer)
 Available VRAM/RAM:3840MB for textures
 GSdx Lookup CRC:0
 GSdx Lookup CRC:0
-Delete 0 Shaders, 34 Programs, 28 Pipelines
-Plugins closed successfully.
-Shutting down plugins...
+McdSlot 0 [File]: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\memcards\Mcd001.ps2
+McdSlot 1 [File]: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\memcards\Mcd002.ps2
+Plugins opened successfully.
+EE/iR5900-32 Recompiler Reset
+	Bios Found: Europe  v02.20(10/02/2006)  Console
+	BIOS rom1 module not found, skipping...
+	BIOS rom2 module not found, skipping...
+	BIOS erom module not found, skipping...
+# Initialize memory (rev:3.70, ctm:196Mhz, cpuclk:147Mhz detected)
+
+PlayStation 2 ======== Hard reset boot
+ ROMGEN=2006-0210, IOP info (CPUID=1f, CACH_CONFIG=14000200, 2MB, IOP mode)
+ <20060210-142424,ROMconf,PS20220WC20060210.bin:11824>
+# Total accessable memory size: 32 MB (B:2:8:0) (370:2:7c30)
+# TLB spad=0 kernel=1:12 default=13:30 extended=31:38
+# Initialize Start.
+# Initialize GS ...
+# Initialize INTC ...
+# Initialize TIMER ...
+# Initialize DMAC ...
+# Initialize VU1 ...
+# Initialize VIF1 ...
+# Initialize GIF ...
+# Initialize VU0 ...
+# Initialize VIF0 ...
+# Initialize IPU ...
+# Initialize FPU ...
+# Initialize User Memory ...
+# Initialize Scratch Pad ...
+# Initialize Done.
+
+EE DECI2 Manager version 0.06 Apr  7 2005 21:09:14
+  CPUID=2e20, BoardID=0, ROMGEN=2006-0210, 32M
+
+Patches: No CRC found, using 00000000 instead.
+(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.60;1
+(SYSTEM.CNF) Software version = 1.02
+(SYSTEM.CNF) Disc region type = PAL
+ELF (cdrom0:\SLES_512.60;1) Game CRC = 0x5B86BB62, EntryPoint = 0x00A00008
+(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.60;1
+(SYSTEM.CNF) Software version = 1.02
+(SYSTEM.CNF) Disc region type = PAL
+
+IOP Realtime Kernel Ver.0.9.1
+    Copyright 1999 (C) Sony Computer Entertainment Inc. 
+Reboot service module.(99/11/10)
+cdvd driver module version 0.1.1 (C)SCEI
+Load File service.(99/11/05)
+Multi Threaded Fileio module.(99/11/15) 
+iop heap service (99/11/03)
+loadelf: fname cdrom0:¥SLES_512.60;1 secname all
+loadelf version 3.30
+Input ELF format filename = cdrom0:¥SLES_512.60;1
+0 00a00000 0001b5a8 ..
+Loaded, cdrom0:¥SLES_512.60;1
+start address 0xa00008
+gp address 00000000
+# Restart Without Memory Clear.
+# Initialize GS ...
+# Initialize INTC ...
+# Initialize TIMER ...
+# Initialize DMAC ...
+# Initialize VU1 ...
+# Initialize VIF1 ...
+# Initialize GIF ...
+# Initialize VU0 ...
+# Initialize VIF0 ...
+# Initialize IPU ...
+# Initialize FPU ...
+# Initialize Scratch Pad ...
+# Restart Without Memory Clear Done.
+Elf entry point @ 0x00a00008 about to get recompiled. Load patches first.
+(GameDB) Changing VU0/VU1 clamp mode [mode=2]
+EE/iR5900-32 Recompiler Reset
+-------------------------------------------
+Welcome to BASE (Final)
+*****Base is in CD/DVD mode!!!
+*****Pass argument -host0 if you wish to run off your local h/d
+-------------------------------------------
+Get Reboot Request From EE
+ROM directory not found
+GSdx Lookup CRC:5B86BB62
+GSdx Lookup CRC:5B86BB62
+
+PlayStation 2 ======== Update rebooting..
+
+PlayStation 2 ======== Update reboot complete
+cdvdman Init
+
+IOP Realtime Kernel Ver. 2.1
+    Copyright 1999-2001 (C) Sony Computer Entertainment Inc. 
+Reboot service module.(99/11/10)
+cdvd driver module version 0.1.1 (C)SCEI
+Load File service.(99/11/05)
+Multi Threaded Fileio module.(99/11/15) 
+iop heap service (99/11/03)
+loadmodule: fname cdrom0:¥MODULES¥SIO2MAN.IRX;1 args 0 arg 
+loadmodule: id 25, ret 0
+loadmodule: fname cdrom0:¥MODULES¥MTAPMAN.IRX;1 args 0 arg 
+loadmodule: id 26, ret 0
+loadmodule: fname cdrom0:¥MODULES¥PADMAN.IRX;1 args 0 arg 
+loadmodule: id 27, ret 0
+loadmodule: fname cdrom0:¥MODULES¥LIBSD.IRX;1 args 0 arg 
+loadmodule: id 28, ret 0
+loadmodule: fname cdrom0:¥MODULES¥SDRDRV.IRX;1 args 0 arg 
+SDR driver version 4.0.1 (C) SCEI
+ Exit rsd_main 
+loadmodule: id 29, ret 0
+loadmodule: fname cdrom0:¥MODULES¥MCMAN.IRX;1 args 0 arg 
+loadmodule: id 30, ret 2
+loadmodule: fname cdrom0:¥MODULES¥MCSERV.IRX;1 args 0 arg 
+loadmodule: id 31, ret 2
+loadmodule: fname cdrom0:¥MODULES¥SFX.IRX;1 args 0 arg 
+loadmodule: id 32, ret 0
+Set Memory
+Check ints and dma
+Now parsing and loading cdrom0:¥ACTION.ELF;1
+Now loading segment 0 at 00107100, size 0025042c
+Calling entry point at 00224b18
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+(UpdateVSyncRate) Mode Changed to PAL.
+(UpdateVSyncRate) FPS Limit Changed : 50,00 fps

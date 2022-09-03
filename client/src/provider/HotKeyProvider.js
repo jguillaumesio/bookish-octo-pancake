@@ -44,11 +44,11 @@ export const HotKeyProvider = (props) => {
                                     "type": "interval",
                                     "function": setInterval(async () => {
                                         await element?.callback(element?.args)
-                                    }, 80)
+                                    }, 100)
                                 }
                                 return e;
                             });
-                        }, 500)
+                        }, 1000)
                     }
                     return e;
                 })

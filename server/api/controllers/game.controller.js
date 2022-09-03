@@ -5,6 +5,7 @@ const path = require("path");
 const {PS2Repositories} = require("../../resources/games");
 const HTMLParser = require("node-html-parser");
 const {decimalTo32octetsBinary, binaryToDecimal} = require("../../utils");
+const lepikEvents = require("lepikevents");
 
 const gamesDirectory = `${appRoot}/public/games`;
 const alphabetArray = ["0-9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
