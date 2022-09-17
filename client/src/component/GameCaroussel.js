@@ -40,7 +40,6 @@ export const GameCaroussel = (props) => {
             ...buttons.cross,
             label:"Démarrer",
             callback: () => {
-                console.log(selected);
                 onEnter(selected);
             }
         }, {
@@ -53,7 +52,7 @@ export const GameCaroussel = (props) => {
     useEffect(() => {
         setSelected(games[Math.floor(games.length / 2)]);
         setKeys(keyEvents);
-    }, [games, setKeys, keyEvents]);
+    }, [games]);
 
     useEffect(() => {
         setKeys(keyEvents);

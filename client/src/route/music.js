@@ -1,5 +1,5 @@
 import MusicDataService from "../service/music.service";
-import {useContext, useEffect, useState} from "react";
+import {useCallback, useContext, useEffect, useState} from "react";
 import * as React from "react";
 import {makeStyles} from "@mui/styles";
 import {buttons} from "../utils/pad";
@@ -34,6 +34,7 @@ export const MusicIndex = () => {
 
     const classes = useStyle();
     const navigate = useNavigate();
+    const [currentContainer, setCurrentContainer] = useState(0);
     const [snackbar,setSnackbar] = useState({"state": false, "type": null, "message":"" });
     const [addingMusicDialog, setAddingMusicDialog] = useState({open: false, index:0});
     const [searchedMusics, setSearchedMusics] = useState([]);
@@ -48,7 +49,7 @@ export const MusicIndex = () => {
     }
 
     useEffect(() => {
-        setKeys(keyEvents)
+        setKeys(keyEvents(searchedMusics))
     },[]);
 
     useEffect(() => {
@@ -56,7 +57,7 @@ export const MusicIndex = () => {
             setKeys(addingMusicKeyEvents);
         }
         else{
-            setKeys(keyEvents);
+            setKeys(keyEvents(searchedMusics));
         }
     },[selectedSearchedMusicIndex, searchedMusics, addingMusicDialog]);
 
@@ -105,14 +106,17 @@ export const MusicIndex = () => {
             setIsSearching(0);
             setSearchedMusics(response.data.value);
         }
+        return response.data.value;
     }
 
     const handleSearchFiltering = async ({setSearchedMusics, setSelectedSearchedMusicIndex, setIsSearching}) => {
         setKeyboardCallback(_ => async (search) => {
-            await searchFiltering(search, setSearchedMusics, setSelectedSearchedMusicIndex, setIsSearching);
+            return await searchFiltering(search, setSearchedMusics, setSelectedSearchedMusicIndex, setIsSearching);
         });
-        setKeyboardCloseCallback(_ => () => {
-            setTimeout(() => setKeys(keyEvents), 100);
+        setKeyboardCloseCallback(_ => (result) => {
+            setTimeout(() => {
+                setKeys(keyEvents(result))
+            }, 100);
         })
         setIsOpen(true);
     }
@@ -146,7 +150,7 @@ export const MusicIndex = () => {
         }
     ]
 
-    const keyEvents = [
+    const keyEvents = (searchedMusics) => [
         {
             ...buttons.bottom,
             continuous: true,
@@ -209,25 +213,24 @@ export const MusicIndex = () => {
             <div className='content'>
                 <div style={{ display:"flex", flexDirection:"row", flex:1, padding:"8px 4px"}}>
                     <div className={classes.genreContainer} style={{ width:"25%", padding:"20px" }}>
-                        {[].map((genre, index) => <span key={index} >{genre.name}</span>)}
                         <div style={{ display:"flex", flexDirection:"column"}}>
-                            <span>Créer une playlist</span>
-                            <span>Chercher une playlist</span>
-                            <span>Mes playlists</span>
-                        </div>
-                        { playlist.length > 0 &&
-                            <div style={{ display:"flex", flexDirection:"column"}}>
-                                <h3>Liste de lecture</h3>
-                                {playlist.map((e,index) => <span key={index} style={{
-                                    whiteSpace: "nowrap",
-                                    textOverflow: "ellipsis",
-                                    display: "block",
-                                    width: "100%",
-                                    overflow:"hidden",
-                                    color:`${(index === 0) ? "white" : "grey"}`
-                                }}>{e.artist} - {e.title}</span>)}
+                            <h3>Liste de lecture</h3>
+                            <div style={{ padding:"10px 0"}}>
+                                { (playlist.length > 0)
+                                    ?
+                                    playlist.map((e,index) => <span key={index} style={{
+                                        whiteSpace: "nowrap",
+                                        textOverflow: "ellipsis",
+                                        display: "block",
+                                        width: "100%",
+                                        overflow:"hidden",
+                                        color:`${(index === 0) ? "white" : "grey"}`
+                                    }}>{e.artist} - {e.title}</span>)
+                                    :
+                                    <span>Aucune playlist sélectionnée</span>
+                                }
                             </div>
-                        }
+                        </div>
                     </div>
                     <div className={classes.genreContainer} style={{ width:"75%" }}>
                         <TextMusicList offset={selectedSearchedMusicIndex} isContainerSelected={true} limit={12} musics={searchedMusics}/>

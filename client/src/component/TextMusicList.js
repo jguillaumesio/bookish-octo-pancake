@@ -34,12 +34,19 @@ export const TextMusicList = (props) => {
 
     return(
         <div style={{ width:"100%", flex:"1", flexDirection:"column", alignItems:"flex-start", height:"100%", display:"flex", boxSizing:'border-box', padding:'0 20px', margin:'0'}}>
-            {visibleMusics().map((music, index) => (
-                <div key={index} className={`${(isContainerSelected && selectedMusic === music) ? classes.selectedItem : ""} ${classes.item}`}>
-                    <img style={{ height:'100%', padding:'5px', width:'auto'}} src={music["cover"]} title={`${music["artist"]} - ${music["title"]}`}/>
-                    <span style={{ display:"block", width:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{music["artist"]} - {music["title"]}</span>
+            {(visibleMusics().length > 0)
+                ?
+                visibleMusics().map((music, index) => (
+                    <div key={index} className={`${(isContainerSelected && selectedMusic === music) ? classes.selectedItem : ""} ${classes.item}`}>
+                        <img style={{ height:'100%', padding:'5px', width:'auto'}} src={music["cover"]} title={`${music["artist"]} - ${music["title"]}`}/>
+                        <span style={{ display:"block", width:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{music["artist"]} - {music["title"]}</span>
+                    </div>
+                ))
+                :
+                <div className={`${classes.item}`}>
+                    Faites une recherche pour afficher des musiques !
                 </div>
-            ))}
+            }
         </div>
     )
 }

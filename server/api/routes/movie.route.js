@@ -8,7 +8,7 @@ module.exports = (app) => {
     router.post("/getLinksFromPlayer", movies.getSrcFromPlayerLink)
     router.post("/getSerieEpisodes", movies.getSerieEpisodes)
     router.post("/search", movies.search);
-    router.post("/updateState", movies.updateState);
+    //router.post("/updateState", movies.updateState);
 
     app.use('/api/movies', router);
 };

@@ -127,8 +127,8 @@ export const VisualKeyboard = (props) => {
             label: "Valider",
             args:{},
             callback: async () => {
-                await keyboardCallback(value);
-                keyboardCloseCallback();
+                const result = await keyboardCallback(value);
+                keyboardCloseCallback(result);
                 setIsOpen(false);
                 setValue("");
             }
@@ -147,8 +147,8 @@ export const VisualKeyboard = (props) => {
                 if (regex.test(key)) {
                     switch (key) {
                         case "{enter}":
-                            await keyboardCallback(value);
-                            keyboardCloseCallback();
+                            const result = await keyboardCallback(value);
+                            keyboardCloseCallback(result);
                             setValue("");
                             setIsOpen(false);
                             break;
