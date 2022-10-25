@@ -23,7 +23,7 @@ export const GameListIndex = () => {
     },[]);
 
     const launchGame = ({path}) => {
-        GameDataService.launchGame(path)
+        GameDataService.launchGame(path);
     }
 
     return (

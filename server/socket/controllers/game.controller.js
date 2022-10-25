@@ -6,6 +6,7 @@ const {mergeFiles} = require('split-file');
 const qs = require("qs");
 const {exec} = require("child_process");
 const lepikEvents = require('lepikevents');
+const gamepad = require("gamepad");
 
 const gamesDirectory = `${appRoot}/public/games`;
 
@@ -242,6 +243,7 @@ module.exports = () => {
     }
 
     module.launchGame = async (gamePath, socket) => {
+        gamepad.init()
         const emulatorPath = path.join(appRoot, "public/emulators/pcsx2/pcsx2.exe");
         const command = `Start /B ${emulatorPath} "${gamePath}" --fullscreen`;
         try {
@@ -253,8 +255,9 @@ module.exports = () => {
         let alreadyPressed = [false,false];
         let timeout = null;
         lepikEvents.events.on('keyPress', async (data) => {
-            console.log(data);
-            console.log(alreadyPressed);
+            for (let i = 0, l = gamepad.numDevices(); i < l; i++) {
+                console.log(i, gamepad.deviceAtIndex());
+            }
             if (data === "e") {
                 clearTimeout(timeout);
                 timeout = null;

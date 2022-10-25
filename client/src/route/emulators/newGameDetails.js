@@ -34,6 +34,7 @@ export const NewGameDetailsIndex = () => {
     const {state} = useLocation();
     const game = state.game;
     const navigate = useNavigate();
+    const [seeSummary, setSeeSummary] = useState(false);
     const [gameDetails, setGameDetails] = useState(game);
     const [openAvailableDownloads, _setOpenAvailableDownloads] = useState(0);
     const [selectedGameDownload, setSelectedGameDownload] = useState(0);
@@ -63,7 +64,7 @@ export const NewGameDetailsIndex = () => {
 
     useEffect(() => {
         setKeys(keyEvents);
-    }, [selectedContainer, gameDetails, selectedGameDownload, screenshots]);
+    }, [selectedContainer, gameDetails, selectedGameDownload, screenshots, seeSummary]);
 
     useEffect(async () => {
         setKeys(keyEvents);
@@ -154,20 +155,6 @@ export const NewGameDetailsIndex = () => {
 
     const keyEvents = [
         {
-            ...buttons.L1,
-            label: "Clavier",
-            args: {},
-            callback: () => {
-                setKeyboardCallback(_ => (value) => {
-                    console.log(value);
-                });
-                setKeyboardCloseCallback(_ => () => {
-                    setKeys(keyEvents)
-                })
-                setIsOpen(true);
-            }
-        },
-        {
             ...buttons.right,
             continuous: true,
             display: false,
@@ -199,6 +186,11 @@ export const NewGameDetailsIndex = () => {
             args: {"state": 1, "selectedGameIndex": selectedGameDownload},
             callback: containers[selectedContainer].onTap
         }, {
+            ...buttons.square,
+            label: "Description",
+            args: {"state": seeSummary},
+            callback: ({state}) => setSeeSummary(!state)
+        }, {
             ...buttons.circle,
             label: "Retour",
             args: {"state": 0},
@@ -225,6 +217,12 @@ export const NewGameDetailsIndex = () => {
                 </div>
             </Snackbar>
             <div className="content">
+                <Dialog open={seeSummary}>
+                    <DialogTitle>Description :</DialogTitle>
+                    <p style={{display:"flex", width:"100%", boxSizing:"border-box", padding:"20px", lineHeight: "1.6"}}>
+                        {gameDetails?.summary}
+                    </p>
+                </Dialog>
                 <Dialog open={openAvailableDownloads !== 0}>
                     <DialogTitle>Téléchargements:</DialogTitle>
                     { openAvailableDownloads === -1
@@ -266,8 +264,8 @@ export const NewGameDetailsIndex = () => {
                             <div style={{display: "flex", flexDirection: "row", alignItems: "center", height:"50%", minHeight:"50%",maxHeight:"50%"}}>
                                 <img src={gameDetails?.cover?.url} alt="cover" style={{maxHeight:"100%", width: "auto", height: "100%", display: "block", margin: "0 auto"}}/>
                                 <div style={{ padding: "0 20px", width: "60%", display: "flex", flexDirection:"column", alignItems:"flex-start", justifyContent:"space-between", alignSelf:"stretch"}}>
-                                    <div style={{ display:"flex", width:"100%", boxSizing:"border-box", marginBottom:"10px", overflow:"hidden", color: "#EAEAEA", lineHeight: "1.6"}}>
-                                        {gameDetails?.summary}
+                                    <div style={{display:"flex", width:"100%", boxSizing:"border-box", marginBottom:"10px", overflow:"hidden", color: "#EAEAEA", lineHeight: "1.6"}}>
+                                        {gameDetails?.summary.slice(0,300)}...
                                     </div>
                                     <div style={{ display:"block", width:"100%"}}>
                                         <div>

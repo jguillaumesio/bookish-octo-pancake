@@ -22,8 +22,8 @@ Loading plugins from C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\pu
 	Bound SPU2: Spu2-X.dll [SPU2-X 20200506140834 2.0.0]
 	Bound CDVD: cdvdGigaherz.dll [cdvdGigaherz 20200506140834 0.11.0]
 	Bound  USB: USBnull.dll [USBnull Driver 20200506140834 0.7.0]
-(GameDB) 9858 games on record (loaded in 255ms)
 	Bound   FW: FWnull.dll [FWnull Driver 20200506140834 0.7.0]
+(GameDB) 9858 games on record (loaded in 226ms)
 	Bound DEV9: DEV9null.dll [DEV9null Driver 20200506140834 0.5.0]
 Plugins loaded successfully.
 
@@ -45,10 +45,10 @@ Opening plugins...
 	Opening PAD
 	Opening SPU2
 	Opening CDVD
-isoFile open ok: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\games\0-9\007-_-Nightfire\007 - Nightfire (Europe) (De,Es).iso
+isoFile open ok: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\games\0-9\007-_-Nightfire\007 - Nightfire (Europe) (En,Fr,It,Nl,Sv).iso
 	Image type  = DVD
  * CDVD Disk Open: DVD, Single layer or unknown:
- * * Track 1: Data (Mode 1) (1956784 sectors)
+ * * Track 1: Data (Mode 1) (1953904 sectors)
 	Opening USB
 	Opening FW
 	Opening DEV9
@@ -71,9 +71,9 @@ INFO: GL_ARB_get_texture_sub_image is available
 Current Renderer: OpenGL (Hardware renderer)
 Available VRAM/RAM:3840MB for textures
 GSdx Lookup CRC:0
-GSdx Lookup CRC:0
 McdSlot 0 [File]: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\memcards\Mcd001.ps2
 McdSlot 1 [File]: C:\Users\Guillaume\Downloads\bookish-octo-pancake\server\public\emulators\pcsx2\memcards\Mcd002.ps2
+GSdx Lookup CRC:0
 Plugins opened successfully.
 EE/iR5900-32 Recompiler Reset
 	Bios Found: Europe  v02.20(10/02/2006)  Console
@@ -107,11 +107,11 @@ EE DECI2 Manager version 0.06 Apr  7 2005 21:09:14
   CPUID=2e20, BoardID=0, ROMGEN=2006-0210, 32M
 
 Patches: No CRC found, using 00000000 instead.
-(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.60;1
+(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.58;1
 (SYSTEM.CNF) Software version = 1.02
 (SYSTEM.CNF) Disc region type = PAL
-ELF (cdrom0:\SLES_512.60;1) Game CRC = 0x5B86BB62, EntryPoint = 0x00A00008
-(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.60;1
+ELF (cdrom0:\SLES_512.58;1) Game CRC = 0x5B86BB62, EntryPoint = 0x00A00008
+(SYSTEM.CNF) Detected PS2 Disc = cdrom0:\SLES_512.58;1
 (SYSTEM.CNF) Software version = 1.02
 (SYSTEM.CNF) Disc region type = PAL
 
@@ -122,11 +122,11 @@ cdvd driver module version 0.1.1 (C)SCEI
 Load File service.(99/11/05)
 Multi Threaded Fileio module.(99/11/15) 
 iop heap service (99/11/03)
-loadelf: fname cdrom0:¥SLES_512.60;1 secname all
+loadelf: fname cdrom0:¥SLES_512.58;1 secname all
 loadelf version 3.30
-Input ELF format filename = cdrom0:¥SLES_512.60;1
+Input ELF format filename = cdrom0:¥SLES_512.58;1
 0 00a00000 0001b5a8 ..
-Loaded, cdrom0:¥SLES_512.60;1
+Loaded, cdrom0:¥SLES_512.58;1
 start address 0xa00008
 gp address 00000000
 # Restart Without Memory Clear.
@@ -190,7 +190,33 @@ Set Memory
 Check ints and dma
 Now parsing and loading cdrom0:¥ACTION.ELF;1
 Now loading segment 0 at 00107100, size 0025042c
-Calling entry point at 00224b18
+Calling entry point at 00224b20
 Stream Buffer 1Bank 32768byte 5banks 163840byte used
 (UpdateVSyncRate) Mode Changed to PAL.
 (UpdateVSyncRate) FPS Limit Changed : 50,00 fps
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Stream Buffer 1Bank 32768byte 5banks 163840byte used
+Closing plugins...
+	Closing DEV9
+	Closing FW
+	Closing USB
+	Closing CDVD
+	Closing SPU2
+	Closing PAD
+	Closing GS
+Delete 0 Shaders, 41 Programs, 28 Pipelines
+Plugins closed successfully.
+Shutting down plugins...
+Plugins shutdown successfully.
+(GameDB) Unloading...

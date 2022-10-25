@@ -33,6 +33,7 @@ export const HotKeyProvider = (props) => {
 
     const handleButtonPress = async (buttonName, keys) => {
         const element = keys.find(key => key.buttonName === buttonName);
+        console.log(element)
         if(element){
             if("continuous" in element && element.continuous){
                 setButtonIntervals(e => {
