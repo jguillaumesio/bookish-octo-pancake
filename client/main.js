@@ -14,7 +14,6 @@ function createWindow () {
   win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
-        'Access-Control-Allow-Origin': ['*'],
         ...details.responseHeaders,
       },
     });

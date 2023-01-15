@@ -2,9 +2,7 @@
 
 # TODO
 
-- create installation page
-- do tv page
+- fix movie page
 - favicon
-- verify 99% stuck game download percentage
 - unregister lepikevent global key listener
-- only playlist for music part
+- redo music part with youtube

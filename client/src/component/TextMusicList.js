@@ -14,6 +14,8 @@ const useStyle = makeStyles({
         height:"55px",
         width:"100%",
         padding:"8px 5px",
+        maxHeight:'120px',
+        minHeight:'120px'
     },
     "selectedItem":{
         color:"white"
@@ -38,8 +40,8 @@ export const TextMusicList = (props) => {
                 ?
                 visibleMusics().map((music, index) => (
                     <div key={index} className={`${(isContainerSelected && selectedMusic === music) ? classes.selectedItem : ""} ${classes.item}`}>
-                        <img style={{ height:'100%', padding:'5px', width:'auto'}} src={music["cover"]} title={`${music["artist"]} - ${music["title"]}`}/>
-                        <span style={{ display:"block", width:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{music["artist"]} - {music["title"]}</span>
+                        <img style={{ maxHeight:'120px', maxWidth:'160px', minHeight:'120px', minWidth:'160px'}} src={music["thumbnail"]} title={music["title"]}/>
+                        <span style={{ display:"block", width:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{music["title"]}</span>
                     </div>
                 ))
                 :

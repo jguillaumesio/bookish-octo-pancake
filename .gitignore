@@ -2,6 +2,7 @@ node_modules/
 server/node_modules/
 client/node_modules/
 server/public/games/ps2/
+server/public/puppeteer/chrome
 .env
 package-lock.json
 .idea

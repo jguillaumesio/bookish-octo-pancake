@@ -1,9 +1,8 @@
-module.exports = (app, spotifyToken) => {
-    const music = require("../controllers/music.controller")(app, spotifyToken);
+module.exports = (app) => {
+    const music = require("../controllers/music.controller")(app);
     const router = require("express").Router();
 
-    router.post("/search", music.spotifySearch);
-    router.post("/", music.getMp3Link)
+    router.post("/search", music.youtubeSearch);
 
     app.use('/api/musics', router);
 };

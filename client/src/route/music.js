@@ -1,13 +1,12 @@
 import MusicDataService from "../service/music.service";
-import {useCallback, useContext, useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import * as React from "react";
 import {makeStyles} from "@mui/styles";
 import {buttons} from "../utils/pad";
 import {KeyboardContext} from "../component/VisualKeyboard";
 import {KeyContext} from "../provider/HotKeyProvider";
 import {TextMusicList} from "../component/TextMusicList";
-import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css';
+import ReactPlayer from 'react-player/youtube'
 import {useNavigate} from "react-router-dom";
 import {Alert, Dialog, List, ListItem, ListItemText, Snackbar} from "@mui/material";
 
@@ -61,40 +60,20 @@ export const MusicIndex = () => {
         }
     },[selectedSearchedMusicIndex, searchedMusics, addingMusicDialog]);
 
-    const addToPlaylist = async music => {
-        const res = await MusicDataService.getMp3Link(music["title"], music["artist"]).then(res => res.data);
-        if("type" in res && res.type === "success"){
-            const result = res.value;
-            setPlaylist([...playlist, {
-                "src":result.stream,
-                "title": music["title"],
-                "artist": music["artist"],
-            }]);
-            setAddingMusicDialog({"index": 0, "open": false});
-        }
-        else if("type" in res && res.type === "error"){
-            setSearchedMusics(e => e.filter(i => i !== music) );
-            setSnackbar({"type":"error", "message":"La musique est introuvable !", "state": true});
-            setAddingMusicDialog({"index": 0, "open": false});
-        }
+    const addToPlaylist = music => {
+        setPlaylist([...playlist, {
+            "src":music["link"],
+            "title": music["title"],
+        }]);
+        setAddingMusicDialog({"index": 0, "open": false});
     }
 
-    const addAfter = async music => {
-        const res = await MusicDataService.getMp3Link(music["title"], music["artist"]).then(res => res.data);
-        if("type" in res && res.type === "success"){
-            const result = res.value;
-            setPlaylist([...playlist.slice(0,1), {
-                "src":result.stream,
-                "title": music["title"],
-                "artist": music["artist"],
-            }, ...playlist.slice(1, playlist.length)]);
-            setAddingMusicDialog({"index": 0, "open": false});
-        }
-        else if("type" in res && res.type === "error"){
-            setSearchedMusics(e => e.filter(i => i !== music) );
-            setSnackbar({"type":"error", "message":"La musique est introuvable !", "state": true});
-            setAddingMusicDialog({"index": 0, "open": false});
-        }
+    const addAfter = music => {
+        setPlaylist([...playlist.slice(0,1), {
+            "src":music["link"],
+            "title": music["title"],
+        }, ...playlist.slice(1, playlist.length)]);
+        setAddingMusicDialog({"index": 0, "open": false});
     }
 
 
@@ -225,7 +204,7 @@ export const MusicIndex = () => {
                                         width: "100%",
                                         overflow:"hidden",
                                         color:`${(index === 0) ? "white" : "grey"}`
-                                    }}>{e.artist} - {e.title}</span>)
+                                    }}>{e.title}</span>)
                                     :
                                     <span>Aucune playlist sélectionnée</span>
                                 }
@@ -237,16 +216,19 @@ export const MusicIndex = () => {
                     </div>
                 </div>
                 { playlist.length > 0 &&
-                    <AudioPlayer
-                        autoPlay
-                        hasDefaultKeyBindings={false}
-                        //autoPlayAfterSrcChange={true}
-                        showJumpControls={false}
-                        showFilledVolume={false}
-                        customAdditionalControls={[]}
-                        layout={"horizontal"}
-                        src={playlist[0]?.src}
-                        onEnded={_ => setPlaylist((playlist.length === 1) ? [] : playlist.slice(1, playlist.length))}
+                    <ReactPlayer
+                    url={playlist[0]?.src}
+                    playing={playlist.length > 0}
+                    loop={false}
+                    controls={false}
+                    volume={1}
+                    width={100}
+                    height={100}
+                    onReady={() => console.log(playlist[0]?.src)}
+                    onPlay={() => console.log(playlist[0]?.src)}
+                    onPause={() => console.log('paused')}
+                    onEnded={_ => setPlaylist((playlist.length === 1) ? [] : playlist.slice(1, playlist.length))}
+                    onError={e => console.log(e)}
                     />
                 }
             </div>

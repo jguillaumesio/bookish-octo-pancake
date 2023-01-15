@@ -17,14 +17,12 @@ export const HomeIndex = () => {
             case 1:
                 navigate("movies");
                 break;
-            /*
             case 2:
                 navigate("music");
                 break;
             case 3:
                 navigate("tv");
                 break;
-                */
         }
     }
 
@@ -37,8 +35,8 @@ export const HomeIndex = () => {
                     items={[
                         {name: "Jeu", image: images.game, Icon: SportsEsportsIcon},
                         {name: "Film", image: images.tv, Icon: LiveTvIcon},
-                        //{name: "Musique", image: images.music, Icon: AudiotrackIcon},
-                        //{name: "Télévision", image: images.movie, Icon: MovieIcon}
+                        {name: "Musique", image: images.music, Icon: AudiotrackIcon},
+                        {name: "Télévision", image: images.movie, Icon: MovieIcon}
                     ]}
                 />
             </div>

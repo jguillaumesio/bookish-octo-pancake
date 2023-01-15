@@ -104,7 +104,7 @@ const _searchGameDetails = async (search, igdbToken) => {
     const searchArray = search.split(/ |-/).map((e,i) => search.split(/ |-/).slice(0,search.split(/ |-/).length - i).join(" "));
     let rawGames = [];
     for(const search of searchArray){
-        const result = await axios.get(`https://www.igdb.com/advanced_search?d=1&f[type]=games&q=${search}&s=score&f[platforms.id_in]=8`,{
+        const result = await axios.get(`https://www.igdb.com/advanced_search?d=1&f[type]=games&q=${encodeURIComponent(search)}&s=score&f[platforms.id_in]=8`,{
             headers:{
                 "x-requested-with": "XMLHttpRequest"
             }
@@ -546,7 +546,7 @@ module.exports = (app, igdbToken, downloads) => {
                     }
                 }
             }
-            if(correspondingGameFromNewGameList.similarity > process.env.MATCH_PERCENTAGE_THREESOLD){
+            if(correspondingGameFromNewGameList.similarity > process.env.MATCH_PERCENTAGE_THRESHOLD){
                 result.push(correspondingGameFromNewGameList.game)
             }
         }
