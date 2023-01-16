@@ -30,7 +30,6 @@ require("./api/routes/music.route")(app);
 require("./api/routes/game.route")(app, igdbToken, downloads);
 require("./api/routes/movie.route")(app);
 require("./api/routes/misc.route")(app);
-require("./api/routes/installation.route")(app, igdbToken);
 
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL);
@@ -39,13 +38,10 @@ app.use(function (req, res, next) {
 
 io.on("connection", (socket) => {
     console.info(`Socket ${socket.id} has connected.`);
-
     socket.on("disconnect", () => {
         console.info(`Socket ${socket.id} has disconnected.`);
     });
-
     require('./socket/events/game.event')(socket, downloads);
-    require('./socket/events/music.event')(socket);
 });
 
 server.listen(8080, function() {

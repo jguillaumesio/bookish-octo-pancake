@@ -1,4 +1,5 @@
 const robot = require("robotjs");
+const {logError} = require("server/utils");
 
 module.exports = (app) => {
     const module = {};
@@ -13,7 +14,7 @@ module.exports = (app) => {
                 value:null
             });
         }catch(e){
-            console.log(e);
+            logError("game.controller.js",e);
             res.send({
                 type:"error",
                 value:null

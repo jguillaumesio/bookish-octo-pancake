@@ -1,11 +1,12 @@
 const YouTube = require('youtube-node');
+const {logError} = require("server/utils");
 
 module.exports = () => {
     const module = {};
     module.youtubeSearch = async (req, res) => {
-        const {search} = req.body;
-        let videos = []
         try{
+            const {search} = req.body;
+            let videos = []
             const youtube = new YouTube();
             youtube.setKey(process.env.YOUTUBE_API_KEY);
             youtube.search(search, 10, (error, result) => {
@@ -25,7 +26,7 @@ module.exports = () => {
                 })
             });
         }catch(e){
-            console.log(e);
+            logError("game.controller.js",e);
             res.send({
                 type:"error",
                 value:[]

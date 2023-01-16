@@ -5,4 +5,6 @@
 - fix movie page
 - favicon
 - unregister lepikevent global key listener
-- redo music part with youtube
+- Add menu pictures
+- Add play/pause button music
+- Fix searchGameDetails

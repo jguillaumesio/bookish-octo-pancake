@@ -4,8 +4,10 @@ const {stringsSimilarityPercentage} = require("./../../utils");
 const path = require("path");
 const {PS2Repositories} = require("../../resources/games");
 const HTMLParser = require("node-html-parser");
-const {decimalTo32octetsBinary, binaryToDecimal} = require("../../utils");
+const {logError, decimalTo32octetsBinary, binaryToDecimal} = require("../../utils");
 const lepikEvents = require("lepikevents");
+const puppeteer = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
 const gamesDirectory = `${appRoot}/public/games`;
 const alphabetArray = ["0-9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
@@ -31,8 +33,6 @@ const _igdbRequest = async (type, body, igdbToken) => {
             return response.data;
     });
 }
-
-const parseImageSize = url => url.replace(new RegExp(/(cover_small|screenshot_med|cover_big|logo_med|screenshot_big|screenshot_huge|thumb|micro|720p)/), "1080p");
 
 const _getNewGameList = async (igdbToken) => {
     try {
@@ -103,14 +103,33 @@ const _searchGameDetails = async (search, igdbToken) => {
     search = correctNameDefault(search);
     const searchArray = search.split(/ |-/).map((e,i) => search.split(/ |-/).slice(0,search.split(/ |-/).length - i).join(" "));
     let rawGames = [];
+    puppeteer.use(StealthPlugin());
+    const browser = await puppeteer.launch({
+        product: "chrome",
+        executablePath:  `${appRoot}/public/puppeteer/chrome/chrome.exe`,
+        userDataDir: `${appRoot}/public/puppeteer/tmp`,
+        args: [
+            '-wait-for-browser'
+        ],
+        headless: false
+    });
+    const page = await browser.newPage()
     for(const search of searchArray){
-        const result = await axios.get(`https://www.igdb.com/advanced_search?d=1&f[type]=games&q=${encodeURIComponent(search)}&s=score&f[platforms.id_in]=8`,{
-            headers:{
-                "x-requested-with": "XMLHttpRequest"
+        await page.goto(`https://www.igdb.com/search?utf8=%E2%9C%93&type=1&q=${encodeURIComponent(search)}`, { waitUntil: "load"});
+        try{
+            let result = await page.evaluate(() => {
+                return document.querySelector("script[data-component-name='GameEntries']")?.innerHTML;
+            });
+            result = JSON.parse(result);
+            if(result.games){
+                rawGames.push(...[...result.games].filter(e => !rawGames.includes(e.name)).map(e => e.name));
             }
-        }).then(response => (response.data ?? []));
-        rawGames.push(...[...result].filter(e => !rawGames.includes(e.name)).map(e => e.name));
+        }catch(e){
+            console.log(e);
+        }
     }
+    console.log(rawGames);
+    await browser.close();
     rawGames = [...rawGames].map(game => {
         return {
             "name":game,
@@ -142,9 +161,9 @@ const _searchGameDetails = async (search, igdbToken) => {
                         }
                         results.push({
                             ...e,
-                            "cover": {"url": e?.cover?.url?.replace("t_thumb", "t_cover_big")},
+                            "cover": {"url": "https:".concat(e?.cover?.url?.replace("t_thumb", "t_cover_big"))},
                             "screenshots": e?.screenshots?.map(s => {
-                                return {...s, "url": s.url.replace("t_thumb", "t_original")}
+                                return {...s, "url": "https:".concat(s?.url?.replace("t_thumb", "t_original"))}
                             })
                         })
                     }
@@ -288,7 +307,7 @@ module.exports = (app, igdbToken, downloads) => {
             });
         }
         catch(e){
-            console.log(e)
+            logError("game.controller.js",e);
             res.send({
                 type:"error",
                 value:[]
@@ -296,43 +315,42 @@ module.exports = (app, igdbToken, downloads) => {
         }
     }
     module.searchGameByName = async (req, res) => {
-        const { search } = req.body;
-        igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
-        let result = await _getNewGameList(igdbToken);
-        if("type" in result && result.type === "success"){
-            result.value = result.value.filter(game =>
-                game.name.split(/ |-/).findIndex(partialName => stringsSimilarityPercentage(search.toLowerCase(), partialName.toLowerCase()) > 0.8) !== -1
-                ||
-                game.name.toLowerCase().includes(search.toLowerCase())
-            );
+        try{
+            const { search } = req.body;
+            igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+            let result = await _getNewGameList(igdbToken);
+            if("type" in result && result.type === "success"){
+                result.value = result.value.filter(game =>
+                    game.name.split(/ |-/).findIndex(partialName => stringsSimilarityPercentage(search.toLowerCase(), partialName.toLowerCase()) > 0.8) !== -1
+                    ||
+                    game.name.toLowerCase().includes(search.toLowerCase())
+                );
+            }
+            res.send(result);
+        }catch(e){
+            logError("game.controller.js",e);
+            res.send({
+                type:"error",
+                value:[]
+            })
         }
-        res.send(result);
     }
     module.generateAllDetails = async (req, res) => {
-        igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
-        createAlphabetDirectory();
-        const result = await _getNewGameList(igdbToken);
-        let i = 0;
-        let error = [];
-        for(const search of result.value){
-            let game = {};
-            const detailPath = `${findDirectoryByLetter(search.directory)}/details.json`;
-            try{
-                if(fs.existsSync(detailPath)){
-                    i++;
-                    console.log(`${i}/${result.value.length}`);
-                    continue;
-                }
-                const response = await _searchGameDetails(search.name ,igdbToken);
-                if(response.length > 0){
-                    game = keepBestMatch(response);
-                    if("involved_companies" in game){
-                        game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+        try{
+            igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+            createAlphabetDirectory();
+            const result = await _getNewGameList(igdbToken);
+            let i = 0;
+            let error = [];
+            for(const search of result.value){
+                let game = {};
+                const detailPath = `${findDirectoryByLetter(search.directory)}/details.json`;
+                try{
+                    if(fs.existsSync(detailPath)){
+                        i++;
+                        console.log(`${i}/${result.value.length}`);
+                        continue;
                     }
-                    _createGameDetails(detailPath,game);
-                }
-                else{
-                    igdbToken = await authenticate(igdbToken);
                     const response = await _searchGameDetails(search.name ,igdbToken);
                     if(response.length > 0){
                         game = keepBestMatch(response);
@@ -342,16 +360,33 @@ module.exports = (app, igdbToken, downloads) => {
                         _createGameDetails(detailPath,game);
                     }
                     else{
-                        error.push(search.name);
+                        igdbToken = await authenticate(igdbToken);
+                        const response = await _searchGameDetails(search.name ,igdbToken);
+                        if(response.length > 0){
+                            game = keepBestMatch(response);
+                            if("involved_companies" in game){
+                                game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+                            }
+                            _createGameDetails(detailPath,game);
+                        }
+                        else{
+                            error.push(search.name);
+                        }
                     }
+                }catch(e){
+                    error.push(search.name);
                 }
-            }catch(e){
-                error.push(search.name);
+                i++;
+                console.log(`${i}/${result.value.length}`);
             }
-            i++;
-            console.log(`${i}/${result.value.length}`);
+            res.send(error);
+        }catch(e){
+            logError("game.controller.js",e);
+            res.send({
+                type:"error",
+                value:e
+            })
         }
-        res.send(error);
     }
     module.refreshNewGameList = async (req,res) => {
         try{
@@ -362,7 +397,7 @@ module.exports = (app, igdbToken, downloads) => {
                 value: games
             })
         }catch(e){
-            console.log(e);
+            logError("game.controller.js",e);
             res.send({
                 type:"error",
                 value:e
@@ -371,20 +406,27 @@ module.exports = (app, igdbToken, downloads) => {
     }
 
     module.getNewGameList = async (req,res) => {
-        igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
-        const result = await _getNewGameList(igdbToken);
-        res.send(result);
+        try{
+            igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+            const result = await _getNewGameList(igdbToken);
+            res.send(result);
+        }catch(e){
+            logError("game.controller.js",e);
+            res.send({
+                type:"error",
+                value:e
+            })
+        }
     }
 
     module.searchGameDetails = async (req, res) => {
-        const {search, directoryName} = req.body;
-
-        let game = {};
-        const basePath = findDirectoryByLetter(directoryName);
-        const detailPath = `${basePath}/details.json`;
-        const informationFilePath = `${basePath}/${process.env.INFORMATIONS_FILENAME}`;
-        if(fs.existsSync(detailPath)){
-            try{
+        try{
+            const {search, directoryName} = req.body;
+            let game = {};
+            const basePath = findDirectoryByLetter(directoryName);
+            const detailPath = `${basePath}/details.json`;
+            const informationFilePath = `${basePath}/${process.env.INFORMATIONS_FILENAME}`;
+            if(fs.existsSync(detailPath)){
                 const details = fs.readFileSync(detailPath, "utf-8");
                 game = {
                     ...JSON.parse(details),
@@ -401,44 +443,47 @@ module.exports = (app, igdbToken, downloads) => {
                     const temp = JSON.parse(fs.readFileSync(informationFilePath, "utf-8"));
                     game.state = temp.state;
                 }
-            }catch(e){
-                console.log(e);
-            }
-        }
-        else{
-            igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
-            const response = await _searchGameDetails(search ,igdbToken);
-            if(response.length > 0){
-                game = keepBestMatch(response);
-                if("tags" in game){
-                    game.tags = await parseGameDetailsTag(game.tags, igdbToken);
-                }
-                if("involved_companies" in game){
-                    game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
-                }
-                _createGameDetails(detailPath,game);
             }
             else{
-                res.send({
-                    type:"error",
-                    value: "Aucun jeu trouvé"
-                });
-                return;
+                igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+                const response = await _searchGameDetails(search ,igdbToken);
+                if(response.length > 0){
+                    game = keepBestMatch(response);
+                    if("tags" in game){
+                        game.tags = await parseGameDetailsTag(game.tags, igdbToken);
+                    }
+                    if("involved_companies" in game){
+                        game["involved_companies"] = _parseCompaniesLogo(game["involved_companies"]);
+                    }
+                    _createGameDetails(detailPath,game);
+                }
+                else{
+                    res.send({
+                        type:"error",
+                        value: "Aucun jeu trouvé"
+                    });
+                    return;
+                }
             }
+            res.send({
+                type: "success",
+                value: game
+            });
+        }catch(e){
+            logError("game.controller.js",e);
+            res.send({
+                type:"error",
+                value:e
+            })
         }
-
-        res.send({
-            type: "success",
-            value: game
-        });
     }
 
     module.getGames = async (req, res) => {
-        let games = [];
-        let files;
-        const allDirectories = alphabetArray.map(letter => `${gamesDirectory}/${letter}`);
-        if (fs.existsSync(gamesDirectory)) {
-            try {
+        try{
+            let games = [];
+            let files;
+            const allDirectories = alphabetArray.map(letter => `${gamesDirectory}/${letter}`);
+            if (fs.existsSync(gamesDirectory)) {
                 files = allDirectories.reduce((a,directory) => {
                     a.push(...fs.readdirSync(directory).map(e => `${directory}/${e}`));
                     return a;
@@ -462,32 +507,34 @@ module.exports = (app, igdbToken, downloads) => {
                     type:"success",
                     value:games
                 })
-            } catch (e) {
+            }
+            else {
                 res.send({
                     type:"error",
-                    value:"Error trying to read the emulator directory"
+                    value:"Error reading the emulator directory"
                 });
             }
-        } else {
+        }catch(e){
+            logError("game.controller.js",e);
             res.send({
                 type:"error",
-                value:"Error reading the emulator directory"
-            });
+                value:e
+            })
         }
     }
 
     module.getGenres = async (req,res) => {
-        let result;
-        const genresPath = `${gamesDirectory}/genres.json`;
-        if(fs.existsSync(genresPath)){
-            result = JSON.parse(fs.readFileSync(genresPath, "utf-8"));
-            res.send({
-                type: "success",
-                value: result
-            })
-        }
-        else{
-            try {
+        try{
+            let result;
+            const genresPath = `${gamesDirectory}/genres.json`;
+            if(fs.existsSync(genresPath)){
+                result = JSON.parse(fs.readFileSync(genresPath, "utf-8"));
+                res.send({
+                    type: "success",
+                    value: result
+                })
+            }
+            else{
                 result = await _igdbRequest("genres",`fields name; sort id asc; limit 500;`, igdbToken);
                 const writer = fs.createWriteStream(genresPath, {flags: 'w'});
                 writer.write(JSON.stringify(result));
@@ -495,24 +542,23 @@ module.exports = (app, igdbToken, downloads) => {
                     type: "success",
                     value: result
                 });
-            } catch (e) {
-                console.log(e);
-                res.send({
-                    type: "error",
-                    value: e
-                });
             }
+        }catch(e){
+            logError("game.controller.js",e);
+            res.send({
+                type:"error",
+                value:e
+            })
         }
-
     }
 
     module.searchByGenre = async (req,res) => {
-        const { genres } = req.body;
-        const igdbGames = [];
-        let tempGames = [];
-        igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
-        while( igdbGames.length === 0 || tempGames.length !== 0){
-            try{
+        try{
+            const { genres } = req.body;
+            const igdbGames = [];
+            let tempGames = [];
+            igdbToken = (!igdbToken) ? await authenticate(igdbToken) : igdbToken;
+            while( igdbGames.length === 0 || tempGames.length !== 0){
                 tempGames = await _igdbRequest("games",`fields name; where platforms = (8) & genres = (${genres.join(",")}); limit 50; offset ${igdbGames.length};`, igdbToken);
                 tempGames = tempGames.map(e => {
                     return {
@@ -523,38 +569,40 @@ module.exports = (app, igdbToken, downloads) => {
                         })
                     }
                 });
-            }catch(e){
-                console.log(e);
-                tempGames = [];
+                igdbGames.push(...tempGames);
             }
-            igdbGames.push(...tempGames);
-        }
-        const newGameList = await _getNewGameList(igdbToken);
-        if(newGameList.type === "error"){
-            res.send(newGameList);
-            return;
-        }
-        const result = [];
-        for(let i of igdbGames){
-            let correspondingGameFromNewGameList = null;
-            for(let y of newGameList.value){
-                const similarity = stringsSimilarityPercentage(i.name, y.name);
-                if(correspondingGameFromNewGameList === null || similarity >= correspondingGameFromNewGameList.similarity){
-                    correspondingGameFromNewGameList = {game: y, similarity: similarity}
-                    if(similarity === 1){
-                        break;
+            const newGameList = await _getNewGameList(igdbToken);
+            if(newGameList.type === "error"){
+                res.send(newGameList);
+                return;
+            }
+            const result = [];
+            for(let i of igdbGames){
+                let correspondingGameFromNewGameList = null;
+                for(let y of newGameList.value){
+                    const similarity = stringsSimilarityPercentage(i.name, y.name);
+                    if(correspondingGameFromNewGameList === null || similarity >= correspondingGameFromNewGameList.similarity){
+                        correspondingGameFromNewGameList = {game: y, similarity: similarity}
+                        if(similarity === 1){
+                            break;
+                        }
                     }
                 }
+                if(correspondingGameFromNewGameList.similarity > process.env.MATCH_PERCENTAGE_THRESHOLD){
+                    result.push(correspondingGameFromNewGameList.game)
+                }
             }
-            if(correspondingGameFromNewGameList.similarity > process.env.MATCH_PERCENTAGE_THRESHOLD){
-                result.push(correspondingGameFromNewGameList.game)
-            }
+            res.send({
+                type: "success",
+                value: result
+            });
+        }catch(e){
+            logError("game.controller.js",e);
+            res.send({
+                type:"error",
+                value:e
+            })
         }
-        res.send({
-            type: "success",
-            value: result
-        });
     }
-
     return module;
 }
